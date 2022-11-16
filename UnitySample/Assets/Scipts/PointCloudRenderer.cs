@@ -32,33 +32,33 @@ public class PointCloudRenderer : MonoBehaviour
 
     public void Render(Vector3[] arrVertices, Color pointColor)
     {
-        int nPoints, nChunks;
-        if (arrVertices == null)
-        {
-            nPoints = 0;
-            nChunks = 0;
-        }
-        else
-        {
-            nPoints = arrVertices.Length;
-            nChunks = 1 + nPoints / maxChunkSize;
-        }
+        // int nPoints, nChunks;
+        // if (arrVertices == null)
+        // {
+        //     nPoints = 0;
+        //     nChunks = 0;
+        // }
+        // else
+        // {
+        //     nPoints = arrVertices.Length;
+        //     nChunks = 1 + nPoints / maxChunkSize;
+        // }
 
-        if (elems.Count < nChunks)
-            AddElems(nChunks - elems.Count);
-        if (elems.Count > nChunks)
-            RemoveElems(elems.Count - nChunks);
+        // if (elems.Count < nChunks)
+        //     AddElems(nChunks - elems.Count);
+        // if (elems.Count > nChunks)
+        //     RemoveElems(elems.Count - nChunks);
 
-        int offset = 0;
-        for (int i = 0; i < nChunks; i++)
-        {
-            int nPointsToRender = System.Math.Min(maxChunkSize, nPoints - offset);
+        // int offset = 0;
+        // for (int i = 0; i < nChunks; i++)
+        // {
+        //     int nPointsToRender = System.Math.Min(maxChunkSize, nPoints - offset);
 
-            ElemRenderer renderer = elems[i].GetComponent<ElemRenderer>();
-            renderer.UpdateMesh(arrVertices, nPointsToRender, offset, pointColor);
+        //     ElemRenderer renderer = elems[i].GetComponent<ElemRenderer>();
+        //     renderer.UpdateMesh(arrVertices, nPointsToRender, offset, pointColor);
 
-            offset += nPointsToRender;
-        }
+        //     offset += nPointsToRender;
+        // }
     }
 
     void AddElems(int nElems)

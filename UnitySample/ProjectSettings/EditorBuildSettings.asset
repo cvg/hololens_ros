@@ -8,4 +8,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/PointCloudSample.unity
     guid: b2ea44247999fe846983588a46fa8ad7
-  m_configObjects: {}
+  - enabled: 0
+    path: Assets/Scenes/ImuViewSample.unity
+    guid: 1e9c4d1718de36243bc226bc45b71872
+  m_configObjects:
+    Unity.XR.WindowsMR.Settings: {fileID: 11400000, guid: edd1900422b31d84d870c851db5e6235,
+      type: 2}
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 88b27548eb377ad429d9f99648ed4213,
+      type: 2}
+    com.unity.xr.openxr.settings4: {fileID: 11400000, guid: 93290558a36e1bf479f221bb2102f8da,
+      type: 2}

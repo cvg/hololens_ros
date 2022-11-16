@@ -129,6 +129,7 @@ public class TCPClient : MonoBehaviour
         lastMessageSent = true;
     }
 
+    // JULIA: look here to see how to send image to ROS
     public async void SendSpatialImageAsync(byte[] LFImage, byte[] RFImage, long ts_left, long ts_right)
     {
         if (!lastMessageSent) return;
