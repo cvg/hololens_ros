@@ -31,11 +31,10 @@ public class RosPublisherExample : MonoBehaviour
             Debug.Log("IP WAS NOT READ PROPERLY");
         }
         ros = ROSConnection.GetOrCreateInstance();
-        ros.Connect(configReader.ip, configReader.port);
         Debug.Log("Network " + ros.RosIPAddress);
         Debug.Log("Port " + ros.RosPort);
 
-        ros.RegisterPublisher<PosRotMsg>(topicName);
+        ros.RegisterPublisher<PosRotMsg>(topicName, 2);
         Debug.Log("Registered PosRot Publisher");
     }
 

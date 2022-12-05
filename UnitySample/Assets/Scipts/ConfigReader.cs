@@ -7,12 +7,17 @@ using System;
 using UnityEngine;
 using Newtonsoft.Json;
 
+// JULIA: Set up imports for ROS
+using Unity.Robotics.ROSTCPConnector;
+
 public class ConfigReader : MonoBehaviour
 {
     public bool FinishedReader = false;
 
     public string ip = "192.168.50.238";
     public int port = 9091;
+
+    private ROSConnection ros;
 
     void Start()
     {
@@ -32,6 +37,10 @@ public class ConfigReader : MonoBehaviour
         port = json.port;
         Debug.Log(fileContent);
 #endif
+
+        ros = ROSConnection.GetOrCreateInstance();
+        ros.Connect(ip, port); // Specify the unique ip and port once, all other GetOrCreateInstance() should point here
+
         FinishedReader = true;
     }
 }

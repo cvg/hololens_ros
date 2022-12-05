@@ -38,9 +38,10 @@ public class PointCloudBounder : MonoBehaviour
 
         meshRenderer = Drawing3dManagerGO.AddComponent<MeshRenderer>();
         meshRenderer.sharedMaterial = (Material)Resources.Load("Default Point", typeof(Material));
-        // meshRenderer.sharedMaterial.shader = Shader.Find("Point Cloud/singleDisk");
-        meshRenderer.sharedMaterial.shader = Shader.Find("Point Cloud/Point");
-        meshRenderer.sharedMaterial.SetFloat("_PointSize", 0.05f);
+        meshRenderer.sharedMaterial.shader = Shader.Find("Point Cloud/singleDisk");
+        // meshRenderer.sharedMaterial.shader = Shader.Find("Point Cloud/Point");
+        meshRenderer.sharedMaterial.SetFloat("_PointSize", 0.05f * Drawing3dManagerGO.transform.localScale[0]);
+        // meshRenderer.sharedMaterial.SetFloat("_PointSize", 0.05f);
 
         objManipulator = Drawing3dManagerGO.AddComponent<ObjectManipulator>();
         objManipulator.AllowFarManipulation = true;
@@ -50,8 +51,8 @@ public class PointCloudBounder : MonoBehaviour
 
     public void RescalePointSize()
     {
-        // meshRenderer.sharedMaterial.shader = Shader.Find("Point Cloud/singleDisk");
-        meshRenderer.sharedMaterial.shader = Shader.Find("Point Cloud/Point");
+        meshRenderer.sharedMaterial.shader = Shader.Find("Point Cloud/singleDisk");
+        // meshRenderer.sharedMaterial.shader = Shader.Find("Point Cloud/Point");
         meshRenderer.sharedMaterial.SetFloat("_PointSize", 0.05f * Drawing3dManagerGO.transform.localScale[0]);
     }
 }

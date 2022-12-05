@@ -114,41 +114,44 @@ public class ResearchModeVideoStream : MonoBehaviour
     IEnumerator Start()
     {
         yield return new WaitUntil(() => configReader.FinishedReader);   
-        yield return new WaitForSeconds(3f); // Wait 5 seconds to establish all the ROS connections
+        // yield return new WaitForSeconds(3f); // Wait 5 seconds to establish all the ROS connections
  
-
-        // JULIA: Start the ROS connection
-        ros = ROSConnection.GetOrCreateInstance();
-        ros.Connect(configReader.ip, configReader.port);
-        Debug.Log("VideoStreamer is connecting to " + ros.RosIPAddress);
-        Debug.Log("VideoStreamer Port " + ros.RosPort);
-
-        ros.RegisterPublisher<ImageMsg>(LFImageTopicName);
-        // ros.RegisterPublisher<ImageMsg>(RFImageTopicName);
-        // ros.RegisterPublisher<ImageMsg>(LLImageTopicName);
-        ros.RegisterPublisher<ImageMsg>(RRImageTopicName);
-        // ros.RegisterPublisher<PointCloud2Msg>(DepthTopicName);
-
-        Debug.Log("Registered Image Publishers");
-
-        if (depthSensorMode == DepthSensorMode.ShortThrow)
+        if (configReader.FinishedReader == true)
         {
-            if (depthPreviewPlane != null)
-            {
-                depthMediaMaterial = depthPreviewPlane.GetComponent<MeshRenderer>().material;
-                depthMediaTexture = new Texture2D(512, 512, TextureFormat.Alpha8, false);
-                depthMediaMaterial.mainTexture = depthMediaTexture;
-            }
+            // JULIA: Start the ROS connection
+            ros = ROSConnection.GetOrCreateInstance();
+            Debug.Log("VideoStreamer is connecting to " + ros.RosIPAddress);
+            Debug.Log("VideoStreamer Port " + ros.RosPort);
 
-            if (shortAbImagePreviewPlane != null)
-            {
-                shortAbImageMediaMaterial = shortAbImagePreviewPlane.GetComponent<MeshRenderer>().material;
-                shortAbImageMediaTexture = new Texture2D(512, 512, TextureFormat.Alpha8, false);
-                shortAbImageMediaMaterial.mainTexture = shortAbImageMediaTexture;
-            }
-            longDepthPreviewPlane.SetActive(false);
-            longAbImagePreviewPlane.SetActive(false);
+            ros.RegisterPublisher<ImageMsg>(LFImageTopicName);
+            // ros.RegisterPublisher<ImageMsg>(RFImageTopicName);
+            // ros.RegisterPublisher<ImageMsg>(LLImageTopicName);
+            ros.RegisterPublisher<ImageMsg>(RRImageTopicName);
+            // ros.RegisterPublisher<PointCloud2Msg>(DepthTopicName);
+
+            Debug.Log("Registered Image Publishers");
         }
+
+
+
+        // if (depthSensorMode == DepthSensorMode.ShortThrow)
+        // {
+        //     if (depthPreviewPlane != null)
+        //     {
+        //         depthMediaMaterial = depthPreviewPlane.GetComponent<MeshRenderer>().material;
+        //         depthMediaTexture = new Texture2D(512, 512, TextureFormat.Alpha8, false);
+        //         depthMediaMaterial.mainTexture = depthMediaTexture;
+        //     }
+
+        //     if (shortAbImagePreviewPlane != null)
+        //     {
+        //         shortAbImageMediaMaterial = shortAbImagePreviewPlane.GetComponent<MeshRenderer>().material;
+        //         shortAbImageMediaTexture = new Texture2D(512, 512, TextureFormat.Alpha8, false);
+        //         shortAbImageMediaMaterial.mainTexture = shortAbImageMediaTexture;
+        //     }
+        //     longDepthPreviewPlane.SetActive(false);
+        //     longAbImagePreviewPlane.SetActive(false);
+        // }
         
         if (depthSensorMode == DepthSensorMode.LongThrow)
         {
@@ -177,12 +180,12 @@ public class ResearchModeVideoStream : MonoBehaviour
             LFMediaMaterial.mainTexture = LFMediaTexture;
         }
 
-        if (RFPreviewPlane != null)
-        {
-            RFMediaMaterial = RFPreviewPlane.GetComponent<MeshRenderer>().material;
-            RFMediaTexture = new Texture2D(640, 480, TextureFormat.Alpha8, false);
-            RFMediaMaterial.mainTexture = RFMediaTexture;
-        }
+        // if (RFPreviewPlane != null)
+        // {
+        //     RFMediaMaterial = RFPreviewPlane.GetComponent<MeshRenderer>().material;
+        //     RFMediaTexture = new Texture2D(640, 480, TextureFormat.Alpha8, false);
+        //     RFMediaMaterial.mainTexture = RFMediaTexture;
+        // }
 
         // if (LLPreviewPlane != null)
         // {
@@ -191,12 +194,12 @@ public class ResearchModeVideoStream : MonoBehaviour
         //     LLMediaMaterial.mainTexture = LLMediaTexture;
         // }
 
-        // if (RRPreviewPlane != null)
-        // {
-        //     RRMediaMaterial = RRPreviewPlane.GetComponent<MeshRenderer>().material;
-        //     RRMediaTexture = new Texture2D(640, 480, TextureFormat.Alpha8, false);
-        //     RRMediaMaterial.mainTexture = RRMediaTexture;
-        // }
+        if (RRPreviewPlane != null)
+        {
+            RRMediaMaterial = RRPreviewPlane.GetComponent<MeshRenderer>().material;
+            RRMediaTexture = new Texture2D(640, 480, TextureFormat.Alpha8, false);
+            RRMediaMaterial.mainTexture = RRMediaTexture;
+        }
 
         if (pointCloudRendererGo != null)
         {
@@ -240,47 +243,47 @@ public class ResearchModeVideoStream : MonoBehaviour
         // researchMode.SetReferenceCoordinateSystem(unityWorldOrigin);
 
 
-        // update depth map texture
-        if (depthSensorMode == DepthSensorMode.ShortThrow && startRealtimePreview && 
-            depthPreviewPlane != null && researchMode.DepthMapTextureUpdated())
-        {
-            byte[] frameTexture = researchMode.GetDepthMapTextureBuffer();
-            if (frameTexture.Length > 0)
-            {
-                if (depthFrameData == null)
-                {
-                    depthFrameData = frameTexture;
-                }
-                else
-                {
-                    System.Buffer.BlockCopy(frameTexture, 0, depthFrameData, 0, depthFrameData.Length);
-                }
+        // // update depth map texture
+        // if (depthSensorMode == DepthSensorMode.ShortThrow && startRealtimePreview && 
+        //     depthPreviewPlane != null && researchMode.DepthMapTextureUpdated())
+        // {
+        //     byte[] frameTexture = researchMode.GetDepthMapTextureBuffer();
+        //     if (frameTexture.Length > 0)
+        //     {
+        //         if (depthFrameData == null)
+        //         {
+        //             depthFrameData = frameTexture;
+        //         }
+        //         else
+        //         {
+        //             System.Buffer.BlockCopy(frameTexture, 0, depthFrameData, 0, depthFrameData.Length);
+        //         }
 
-                depthMediaTexture.LoadRawTextureData(depthFrameData);
-                depthMediaTexture.Apply();
-            }
-        }
+        //         depthMediaTexture.LoadRawTextureData(depthFrameData);
+        //         depthMediaTexture.Apply();
+        //     }
+        // }
 
-        // update short-throw AbImage texture
-        if (depthSensorMode == DepthSensorMode.ShortThrow && startRealtimePreview && 
-            shortAbImagePreviewPlane != null && researchMode.ShortAbImageTextureUpdated())
-        {
-            byte[] frameTexture = researchMode.GetShortAbImageTextureBuffer();
-            if (frameTexture.Length > 0)
-            {
-                if (shortAbImageFrameData == null)
-                {
-                    shortAbImageFrameData = frameTexture;
-                }
-                else
-                {
-                    System.Buffer.BlockCopy(frameTexture, 0, shortAbImageFrameData, 0, shortAbImageFrameData.Length);
-                }
+        // // update short-throw AbImage texture
+        // if (depthSensorMode == DepthSensorMode.ShortThrow && startRealtimePreview && 
+        //     shortAbImagePreviewPlane != null && researchMode.ShortAbImageTextureUpdated())
+        // {
+        //     byte[] frameTexture = researchMode.GetShortAbImageTextureBuffer();
+        //     if (frameTexture.Length > 0)
+        //     {
+        //         if (shortAbImageFrameData == null)
+        //         {
+        //             shortAbImageFrameData = frameTexture;
+        //         }
+        //         else
+        //         {
+        //             System.Buffer.BlockCopy(frameTexture, 0, shortAbImageFrameData, 0, shortAbImageFrameData.Length);
+        //         }
 
-                shortAbImageMediaTexture.LoadRawTextureData(shortAbImageFrameData);
-                shortAbImageMediaTexture.Apply();
-            }
-        }
+        //         shortAbImageMediaTexture.LoadRawTextureData(shortAbImageFrameData);
+        //         shortAbImageMediaTexture.Apply();
+        //     }
+        // }
 
         // update long depth map texture
         if (depthSensorMode == DepthSensorMode.LongThrow && startRealtimePreview && 
@@ -326,23 +329,26 @@ public class ResearchModeVideoStream : MonoBehaviour
         }
 
         // update LF camera texture
-        if (startRealtimePreview && LFPreviewPlane != null && researchMode.LFImageUpdated())
+        if (researchMode.LFImageUpdated())
         {
             long ts;
             byte[] frameTexture = researchMode.GetLFCameraBuffer(out ts);
             if (frameTexture.Length > 0)
             {
-                if (LFFrameData == null)
+                if (startRealtimePreview && LFPreviewPlane != null)
                 {
-                    LFFrameData = frameTexture;
-                }
-                else
-                {
-                    System.Buffer.BlockCopy(frameTexture, 0, LFFrameData, 0, LFFrameData.Length);
-                }
+                    if (LFFrameData == null)
+                    {
+                        LFFrameData = frameTexture;
+                    }
+                    else
+                    {
+                        System.Buffer.BlockCopy(frameTexture, 0, LFFrameData, 0, LFFrameData.Length);
+                    }
 
-                LFMediaTexture.LoadRawTextureData(LFFrameData);
-                LFMediaTexture.Apply();
+                    LFMediaTexture.LoadRawTextureData(LFFrameData);
+                    LFMediaTexture.Apply();
+                }
 
                 // JULIA: Get the Unity time
                 double unity_time = Time.timeAsDouble;
@@ -471,24 +477,27 @@ public class ResearchModeVideoStream : MonoBehaviour
         // }
 
         // update RR camera texture
-        // if (startRealtimePreview && RRPreviewPlane != null && researchMode.RRImageUpdated())
         if (researchMode.RRImageUpdated())
         {
             long ts;
             byte[] frameTexture = researchMode.GetRRCameraBuffer(out ts);
             if (frameTexture.Length > 0)
             {
-                // if (RRFrameData == null)
-                // {
-                //     RRFrameData = frameTexture;
-                // }
-                // else
-                // {
-                //     System.Buffer.BlockCopy(frameTexture, 0, RRFrameData, 0, RRFrameData.Length);
-                // }
+                if (startRealtimePreview && RRPreviewPlane != null)
+                {
+                    if (RRFrameData == null)
+                    {
+                        RRFrameData = frameTexture;
+                    }
+                    else
+                    {
+                        System.Buffer.BlockCopy(frameTexture, 0, RRFrameData, 0, RRFrameData.Length);
+                    }
 
-                // RRMediaTexture.LoadRawTextureData(RRFrameData);
-                // RRMediaTexture.Apply();
+                    RRMediaTexture.LoadRawTextureData(RRFrameData);
+                    RRMediaTexture.Apply();
+                }
+
 
                 // JULIA: Get the Unity time
                 double unity_time = Time.timeAsDouble;

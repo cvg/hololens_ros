@@ -48,6 +48,8 @@ public class VideoPanelApp : MonoBehaviour
 
     IEnumerator Start()
     {
+        yield return new WaitUntil(() => configReader.FinishedReader);   
+        // yield return new WaitForSeconds(3f); // Wait 5 seconds to establish all the ROS connections
 
 
 #if ENABLE_WINMD_SUPPORT
@@ -70,16 +72,14 @@ public class VideoPanelApp : MonoBehaviour
         _videoPanelUI = GameObject.FindObjectOfType<VideoPanel>();
 
 
-        yield return new WaitUntil(() => configReader.FinishedReader);   
-        yield return new WaitForSeconds(3f); // Wait 5 seconds to establish all the ROS connections
+        if (configReader.FinishedReader == true)
+        {
+            // JULIA: Start the ROS connection
+            ros = ROSConnection.GetOrCreateInstance();
+            ros.RegisterPublisher<ImageMsg>(RGBImageTopicName, 5); // queue size
+            Debug.Log("Registered RGB Image publisher");
+        }
 
-        // JULIA: Start the ROS connection
-        ros = ROSConnection.GetOrCreateInstance();
-        ros.Connect(configReader.ip, configReader.port);
-
-        ros.RegisterPublisher<ImageMsg>(RGBImageTopicName);
-
-        Debug.Log("Registered RGB Image publisher");
     }
 
     private void OnDestroy()
@@ -114,14 +114,19 @@ public class VideoPanelApp : MonoBehaviour
         //You don't need to set all of these params.
         //I'm just adding them to show you that they exist.
         CameraParameters cameraParams = new CameraParameters();
-        cameraParams.cameraResolutionHeight = _resolution.height;
-        cameraParams.cameraResolutionWidth = _resolution.width;
+        // cameraParams.cameraResolutionHeight = _resolution.height;
+        // cameraParams.cameraResolutionWidth = _resolution.width;
+        cameraParams.cameraResolutionHeight = 504;
+        cameraParams.cameraResolutionWidth = 896;
         cameraParams.frameRate = Mathf.RoundToInt(frameRate);
         cameraParams.pixelFormat = CapturePixelFormat.BGRA32;
         cameraParams.rotateImage180Degrees = true; //If your image is upside down, remove this line.
         cameraParams.enableHolograms = false;
 
-        UnityEngine.WSA.Application.InvokeOnAppThread(() => { _videoPanelUI.SetResolution(_resolution.width, _resolution.height); }, false);
+        if (_videoPanelUI != null)
+        {
+            UnityEngine.WSA.Application.InvokeOnAppThread(() => { _videoPanelUI.SetResolution(_resolution.width, _resolution.height); }, false);
+        }
 
         videoCapture.StartVideoModeAsync(cameraParams, OnVideoModeStarted);
     }
@@ -163,11 +168,14 @@ public class VideoPanelApp : MonoBehaviour
 
         sample.Dispose();
 
-        //This is where we actually use the image data
-        UnityEngine.WSA.Application.InvokeOnAppThread(() =>
+        if (_videoPanelUI != null)
         {
-            _videoPanelUI.SetBytes(_latestImageBytes);
-        }, false);
+            //This is where we actually use the image data
+            UnityEngine.WSA.Application.InvokeOnAppThread(() =>
+            {
+                _videoPanelUI.SetBytes(_latestImageBytes);
+            }, false);
+        }
 
         // This is where we publish the image bytes to ROS
         Debug.Log("imagebyte length " + _latestImageBytes.Length);

@@ -55,7 +55,7 @@ public class ResearchModeImuStream : MonoBehaviour
     IEnumerator Start()
     {
         yield return new WaitUntil(() => configReader.FinishedReader);
-        yield return new WaitForSeconds(3f); // Wait 5 seconds to establish all the ROS connections
+        // yield return new WaitForSeconds(3f); // Wait 5 seconds to establish all the ROS connections
 
 #if ENABLE_WINMD_SUPPORT
         researchMode = new HL2ResearchMode();
@@ -70,11 +70,15 @@ public class ResearchModeImuStream : MonoBehaviour
         researchMode.PrintAccelExtrinsics();
         researchMode.PrintGyroExtrinsics();
 #endif
-        ros = ROSConnection.GetOrCreateInstance();
-        ros.Connect(configReader.ip, configReader.port);
-        ros.RegisterPublisher<ImuMsg>(ImuTopicName);
 
-        Debug.Log("Registered Imu Publisher");
+        if (configReader.FinishedReader == true)
+        {
+            ros = ROSConnection.GetOrCreateInstance();
+            ros.RegisterPublisher<ImuMsg>(ImuTopicName);
+
+            Debug.Log("Registered Imu Publisher");
+        }
+
     }
 
 

@@ -60,16 +60,18 @@ public class OdomPublisher : MonoBehaviour
     IEnumerator Start()
     {
         yield return new WaitUntil(() => configReader.FinishedReader);    
-        yield return new WaitForSeconds(3f); // Wait 5 seconds to establish all the ROS connections
+        // yield return new WaitForSeconds(3f); // Wait 5 seconds to establish all the ROS connections
 
         InitializeMessage();
 
-        // Set up ROSConnection
-        ros = ROSConnection.GetOrCreateInstance();
-        ros.Connect(configReader.ip, configReader.port);
-        ros.RegisterPublisher<OdometryMsg>(OdomTopicName);
+        if (configReader.FinishedReader == true)
+        {
+            // Set up ROSConnection
+            ros = ROSConnection.GetOrCreateInstance();
+            ros.RegisterPublisher<OdometryMsg>(OdomTopicName);
+            Debug.Log("Registered Odom Publisher");
+        }
 
-        Debug.Log("Registered Odom Publisher");
 
 #if ENABLE_WINMD_SUPPORT
         previousTimestamp = GetCurrentTimestamp();
