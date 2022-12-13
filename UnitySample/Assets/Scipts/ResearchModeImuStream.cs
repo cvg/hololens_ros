@@ -89,17 +89,6 @@ public class ResearchModeImuStream : MonoBehaviour
             Debug.Log("researchMode was null");
             return;
         }
-        // update Accel Sample
-        if (researchMode.AccelSampleUpdated())
-        {
-            Debug.Log("Getting Accel Sample");
-            accelSampleData = researchMode.GetAccelSample();
-            Debug.Log("Got Accel Sample " + accelSampleData);
-            if (accelSampleData.Length == 3)
-            {
-                // AccelText.text = $"Accel : {accelSampleData[0]:F3}, {accelSampleData[1]:F3}, {accelSampleData[2]:F3}";
-            }
-        }
 
         // update Gyro Sample
         if (researchMode.GyroSampleUpdated())
@@ -125,7 +114,21 @@ public class ResearchModeImuStream : MonoBehaviour
             }
         }
 
-        // JULIA: Publish IMU information
+        // update Accel Sample
+        if (researchMode.AccelSampleUpdated())
+        {
+            long ts;
+            Debug.Log("Getting Accel Sample");
+            accelSampleData = researchMode.GetAccelSample(out ts);
+            Debug.Log("Got Accel Sample " + accelSampleData);
+            if (accelSampleData.Length == 3)
+            {
+                // AccelText.text = $"Accel : {accelSampleData[0]:F3}, {accelSampleData[1]:F3}, {accelSampleData[2]:F3}";
+            }
+        }
+
+        // JULIA: note! Dec 13, only publish IMU if the accelerometer is updated because that's where we get the timestamp
+        // Hopefully this doesn't decrease the publishing rate too much, all other sensors should also be updated anyways
         Debug.Log("Setting up ImuMsg to publish");
         Debug.Log("Getting orientation");
         // ORIENTATION
@@ -141,18 +144,37 @@ public class ResearchModeImuStream : MonoBehaviour
         Vector3Msg linear_a = new Vector3Msg(accelSampleData[0], accelSampleData[1], accelSampleData[2]); // should be in m/s^2
 
         Debug.Log("Getting time as double");
-        // JULIA: Get the Unity time
-        double unity_time = Time.timeAsDouble;
-        // float unity_time = Time.time;
+        // // JULIA: Get the Unity time
+        // double unity_time = Time.timeAsDouble;
+        // // float unity_time = Time.time;
 
-        uint unity_time_sec = (uint)unity_time;
-        uint unity_time_nano = (uint)((unity_time - (int)unity_time_sec) * 1e9);
+        // uint unity_time_sec = (uint)unity_time;
+        // uint unity_time_nano = (uint)((unity_time - (int)unity_time_sec) * 1e9);
 
+        // Old method of using the perception timestamp within the method
         HeaderMsg header = new HeaderMsg(
             0,
-            new TimeMsg(unity_time_sec, unity_time_nano),
+            new TimeMsg(),
             "DepthMap"
         );
+        var perceptionTimestamp = GetCurrentTimestamp();
+        var systemDTOffset = perceptionTimestamp.TargetTime;
+        var ts_old = systemDTOffset.ToFileTime();
+        // // header.stamp.sec = (uint)(systemDTOffset.Ticks/TimeSpan.TicksPerSecond); // Just the number of seconds
+        // header.stamp.sec = (uint)(systemDTOffset.Ticks); // Just the number of hundreds of nanoseconds
+        // header.stamp.nanosec = (uint)( (systemDTOffset.Ticks) - (header.stamp.sec*TimeSpan.TicksPerSecond) ) * 100; // Number of ns with the seconds subtracted
+        header.stamp.sec = (uint)(ts_old/TimeSpan.TicksPerSecond); // Just the number of seconds
+        // header.stamp.sec = (uint)(ts_old); // Just the number of hundredsofnanoseconds
+        header.stamp.nanosec = (uint)( (ts_old) - (header.stamp.sec*TimeSpan.TicksPerSecond) ) * 100; // Number of ns with the seconds subtracted
+
+        // // Extracting the Timestamp directly from the Accelerator sensor
+        // HeaderMsg header = new HeaderMsg(
+        //     0,
+        //     new TimeMsg(),
+        //     "DepthMap"
+        // );
+        // header.stamp.sec = (uint)(ts/TimeSpan.TicksPerSecond); // Just the number of seconds
+        // header.stamp.nanosec = (uint)( (ts) - (header.stamp.sec*TimeSpan.TicksPerSecond) ) * 100; // Number of ns with the seconds subtracted
 
         Debug.Log("New Orientation " + orientation.x + orientation.y + orientation.z + orientation.w);
         ImuMsg imuMsg = new ImuMsg(
@@ -170,6 +192,16 @@ public class ResearchModeImuStream : MonoBehaviour
         Debug.Log("Published ImuMsg");
 #endif
     }
+
+#if WINDOWS_UWP
+    private Windows.Perception.PerceptionTimestamp GetCurrentTimestamp()
+    {
+        // Get the current time, in order to create a PerceptionTimestamp. 
+        Windows.Globalization.Calendar c = new Windows.Globalization.Calendar();
+        return Windows.Perception.PerceptionTimestampHelper.FromHistoricalTargetTime(c.GetDateTime());
+    }
+
+#endif
 
     private Vector3 CreateAccelVector(float[] accelSample)
     {

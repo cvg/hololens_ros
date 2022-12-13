@@ -127,7 +127,7 @@ public class ResearchModeVideoStream : MonoBehaviour
             // ros.RegisterPublisher<ImageMsg>(RFImageTopicName);
             // ros.RegisterPublisher<ImageMsg>(LLImageTopicName);
             ros.RegisterPublisher<ImageMsg>(RRImageTopicName);
-            // ros.RegisterPublisher<PointCloud2Msg>(DepthTopicName);
+            ros.RegisterPublisher<PointCloud2Msg>(DepthTopicName);
 
             Debug.Log("Registered Image Publishers");
         }
@@ -349,22 +349,25 @@ public class ResearchModeVideoStream : MonoBehaviour
                     LFMediaTexture.LoadRawTextureData(LFFrameData);
                     LFMediaTexture.Apply();
                 }
+                // // JULIA: Get the Unity time
+                // double unity_time = Time.timeAsDouble;
+                // // float unity_time = Time.time;
 
-                // JULIA: Get the Unity time
-                double unity_time = Time.timeAsDouble;
-                // float unity_time = Time.time;
+                // uint unity_time_sec = (uint)unity_time;
+                // uint unity_time_nano = (uint)((unity_time - (int)unity_time_sec) * 1e9);
 
-                uint unity_time_sec = (uint)unity_time;
-                uint unity_time_nano = (uint)((unity_time - (int)unity_time_sec) * 1e9);
+                HeaderMsg header = new HeaderMsg(
+                    0,
+                    new TimeMsg(),
+                    "DepthMap"
+                );
 
+                header.stamp.sec = (uint)(ts/TimeSpan.TicksPerSecond); // Just the number of seconds
+                header.stamp.nanosec = (uint)( (ts) - (header.stamp.sec*TimeSpan.TicksPerSecond) ) * 100; // Number of ns with the seconds subtracted
 
                 // JULIA: add passing byte[] frameTexture to a ROS message
                 ImageMsg imageMsg = new ImageMsg(
-                    new HeaderMsg(
-                        0,
-                        new TimeMsg(unity_time_sec, unity_time_nano),
-                        "DepthMap"
-                    ),
+                    header,
                     480,
                     640,
                     "mono8",
@@ -479,7 +482,7 @@ public class ResearchModeVideoStream : MonoBehaviour
         // update RR camera texture
         if (researchMode.RRImageUpdated())
         {
-            long ts;
+            long ts; // Should already be hundreds of nanoseconds
             byte[] frameTexture = researchMode.GetRRCameraBuffer(out ts);
             if (frameTexture.Length > 0)
             {
@@ -499,20 +502,26 @@ public class ResearchModeVideoStream : MonoBehaviour
                 }
 
 
-                // JULIA: Get the Unity time
-                double unity_time = Time.timeAsDouble;
-                // float unity_time = Time.time;
+                // // JULIA: Get the Unity time
+                // double unity_time = Time.timeAsDouble;
+                // // float unity_time = Time.time;
 
-                uint unity_time_sec = (uint)unity_time;
-                uint unity_time_nano = (uint)((unity_time - (int)unity_time_sec) * 1e9);
+                // uint unity_time_sec = (uint)unity_time;
+                // uint unity_time_nano = (uint)((unity_time - (int)unity_time_sec) * 1e9);
+
+                HeaderMsg header = new HeaderMsg(
+                    0,
+                    new TimeMsg(),
+                    "DepthMap"
+                );
+
+                header.stamp.sec = (uint)(ts/TimeSpan.TicksPerSecond); // Just the number of seconds
+                // header.stamp.sec = (uint)(ts); // Just the number of hundredsofnanoseconds
+                header.stamp.nanosec = (uint)( (ts) - (header.stamp.sec*TimeSpan.TicksPerSecond) ) * 100; // Number of ns with the seconds subtracted
 
                 // JULIA: add passing byte[] frameTexture to a ROS message
                 ImageMsg imageMsg = new ImageMsg(
-                    new HeaderMsg(
-                        0,
-                        new TimeMsg(unity_time_sec, unity_time_nano),
-                        "DepthMap"
-                    ),
+                    header,
                     480,
                     640,
                     "mono8",
@@ -527,7 +536,7 @@ public class ResearchModeVideoStream : MonoBehaviour
         }
 
         // Update point cloud
-        // UpdatePointCloud(); // Updates the DepthPC
+        UpdatePointCloud(); // Updates the DepthPC
 
         // Print the rig SpatialLoationMatrix
         
@@ -544,14 +553,19 @@ public class ResearchModeVideoStream : MonoBehaviour
 #if ENABLE_WINMD_SUPPORT
     private void UpdatePointCloud()
     {
+        // need to update how we get the timestamps if we use the depth point cloud
         if (enablePointCloud && renderPointCloud && pointCloudRendererGo != null)
         {
             if ((depthSensorMode == DepthSensorMode.LongThrow && !researchMode.LongThrowPointCloudUpdated()) ||
                 (depthSensorMode == DepthSensorMode.ShortThrow && !researchMode.PointCloudUpdated())) return;
 
             float[] pointCloud = new float[] { };
-            if (depthSensorMode == DepthSensorMode.LongThrow) pointCloud = researchMode.GetLongThrowPointCloudBuffer();
-            else if (depthSensorMode == DepthSensorMode.ShortThrow) pointCloud = researchMode.GetPointCloudBuffer();
+            long ts;
+            // JULIA: a little bit hacky, in order to have the ts variable be defined we need to have the longthrow
+            // Otherwise the else statement will see that ts could be undefined
+            // if (depthSensorMode == DepthSensorMode.LongThrow) pointCloud = researchMode.GetLongThrowPointCloudBuffer(out ts);
+            // else if (depthSensorMode == DepthSensorMode.ShortThrow) pointCloud = researchMode.GetPointCloudBuffer();
+            pointCloud = researchMode.GetLongThrowPointCloudBuffer(out ts);
             Debug.Log("Size of point cloud " + pointCloud.Length);
 
             if (pointCloud.Length > 0)
@@ -570,18 +584,31 @@ public class ResearchModeVideoStream : MonoBehaviour
                 byte[] pointCloudBytes = new byte[pointCloud.Length * 4];
                 Buffer.BlockCopy(pointCloud, 0, pointCloudBytes, 0, pointCloudBytes.Length);
 
-                // JULIA: Get the Unity time
-                double unity_time = Time.timeAsDouble;
-                // float unity_time = Time.time;
+                // // JULIA: Get the Unity time
+                // double unity_time = Time.timeAsDouble;
+                // // float unity_time = Time.time;
 
-                uint unity_time_sec = (uint)unity_time;
-                uint unity_time_nano = (uint)((unity_time - (int)unity_time_sec) * 1e9);
+                // uint unity_time_sec = (uint)unity_time;
+                // uint unity_time_nano = (uint)((unity_time - (int)unity_time_sec) * 1e9);
 
+                // HeaderMsg header = new HeaderMsg(
+                //     0,
+                //     new TimeMsg(unity_time_sec, unity_time_nano),
+                //     "DepthMap"
+                // );
+
+                // Getting the FileTime from 1601
                 HeaderMsg header = new HeaderMsg(
                     0,
-                    new TimeMsg(unity_time_sec, unity_time_nano),
+                    new TimeMsg(),
                     "DepthMap"
                 );
+                // JJULIA: what is ts here
+                header.stamp.sec = (uint)(ts/TimeSpan.TicksPerSecond); // Just the number of seconds
+                // header.stamp.sec = (uint)(ts); // Just the number of hundredsofnanoseconds
+                header.stamp.nanosec = (uint)( (ts) - (header.stamp.sec*TimeSpan.TicksPerSecond) ) * 100; // Number of ns with the seconds subtracted
+
+
                 PointFieldMsg[] pfMsg = new PointFieldMsg[3];
                 pfMsg[0] = new PointFieldMsg(
                     "x",

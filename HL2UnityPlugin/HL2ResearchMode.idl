@@ -15,7 +15,7 @@ namespace HL2UnityPlugin
 
         UInt16[] GetLongDepthMapBuffer();
         UInt8[] GetLongDepthMapTextureBuffer();
-        Single[] GetLongThrowPointCloudBuffer();
+        Single[] GetLongThrowPointCloudBuffer(out Int64 ts);
 
         UInt8[] GetLFCameraBuffer(out Int64 ts);
         UInt8[] GetRFCameraBuffer(out Int64 ts);
@@ -23,7 +23,7 @@ namespace HL2UnityPlugin
         UInt8[] GetRRCameraBuffer(out Int64 ts);
         UInt8[] GetLRFCameraBuffer(out Int64 ts_left, out Int64 ts_right);
         
-        Single[] GetAccelSample();
+        Single[] GetAccelSample(out Int64 ts);
         Single[] GetGyroSample();
         Single[] GetMagSample();
 

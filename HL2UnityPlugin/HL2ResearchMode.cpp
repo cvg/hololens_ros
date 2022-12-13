@@ -450,6 +450,8 @@ namespace winrt::HL2UnityPlugin::implementation
                 if (pHL2ResearchMode->m_reconstructLongThrowPointCloud)
                 {
                     auto ts = PerceptionTimestampHelper::FromSystemRelativeTargetTime(HundredsOfNanoseconds(checkAndConvertUnsigned(timestamp.HostTicks)));
+                    // JULIA: set the timestamp of the longThrowPointCloud
+                    pHL2ResearchMode->m_lastLongThrowPointCloudTimestamp = ts.TargetTime().time_since_epoch().count(); // Getting FileTime
                     transToWorld = pHL2ResearchMode->m_locator.TryLocateAtTimestamp(ts, pHL2ResearchMode->m_refFrame);
                     if (transToWorld == nullptr) continue;
                 }
@@ -712,24 +714,35 @@ namespace winrt::HL2UnityPlugin::implementation
                 auto ts_leftleft = PerceptionTimestampHelper::FromSystemRelativeTargetTime(HundredsOfNanoseconds(checkAndConvertUnsigned(timestamp_leftleft.HostTicks)));
                 auto ts_rightright = PerceptionTimestampHelper::FromSystemRelativeTargetTime(HundredsOfNanoseconds(checkAndConvertUnsigned(timestamp_rightright.HostTicks)));
                 
-                // // uncomment the block below if their transform is needed
-                // auto rigToWorld_l = pHL2ResearchMode->m_locator.TryLocateAtTimestamp(ts_left, pHL2ResearchMode->m_refFrame);
-                // auto rigToWorld_r = rigToWorld_l;
-                // if (ts_left.TargetTime() != ts_right.TargetTime()) {
-                //     rigToWorld_r = pHL2ResearchMode->m_locator.TryLocateAtTimestamp(ts_right, pHL2ResearchMode->m_refFrame);
-                // }
+                // uncomment the block below if their transform is needed
+                auto rigToWorld_l = pHL2ResearchMode->m_locator.TryLocateAtTimestamp(ts_left, pHL2ResearchMode->m_refFrame);
+                auto rigToWorld_r = rigToWorld_l;
+                if (ts_left.TargetTime() != ts_right.TargetTime()) {
+                    rigToWorld_r = pHL2ResearchMode->m_locator.TryLocateAtTimestamp(ts_right, pHL2ResearchMode->m_refFrame);
+                }
                 
-                // if (rigToWorld_l == nullptr || rigToWorld_r == nullptr)
-                // {
-                //     continue;
-                // }
+                if (rigToWorld_l == nullptr || rigToWorld_r == nullptr)
+                {
+                    continue;
+                }
                 
-                // auto LfToWorld = pHL2ResearchMode->m_LFCameraPoseInvMatrix * SpatialLocationToDxMatrix(rigToWorld_l);
-				// auto RfToWorld = pHL2ResearchMode->m_RFCameraPoseInvMatrix * SpatialLocationToDxMatrix(rigToWorld_r);
+                auto LfToWorld = pHL2ResearchMode->m_LFCameraPoseInvMatrix * SpatialLocationToDxMatrix(rigToWorld_l);
+				auto RfToWorld = pHL2ResearchMode->m_RFCameraPoseInvMatrix * SpatialLocationToDxMatrix(rigToWorld_r);
 
-                // // JULIA: just print the rigToWorld_l
-                // auto rigToWorld_r_Mat = SpatialLocationToDxMatrix(rigToWorld_l);
-                // OutputDebugString("rigToWorld_r !!!: " + MatrixToString((DirectX::XMFLOAT4X)rigToWorld_r_Mat));
+                // // JULIA: printing transforms from camera to world
+                // auto rigToWorld_l_Mat = SpatialLocationToDxMatrix(rigToWorld_l);
+                XMFLOAT4X4 LfToWorldFLOAT4X4;
+                XMFLOAT4X4 RfToWorldFLOAT4X4;
+                XMStoreFloat4x4(&LfToWorldFLOAT4X4, LfToWorld);
+                XMStoreFloat4x4(&RfToWorldFLOAT4X4, RfToWorld);
+                std::string lfOut = "LfToWorld transformation: " + MatrixToString(LfToWorldFLOAT4X4);
+                std::string rfOut = "RfToWorld transformation: " + MatrixToString(RfToWorldFLOAT4X4);
+                std::wstring wideLfOut = std::wstring(lfOut.begin(), lfOut.end());
+                std::wstring wideRfOut = std::wstring(rfOut.begin(), rfOut.end());
+                OutputDebugString(wideLfOut.c_str());
+                OutputDebugString(wideRfOut.c_str());
+                // std::cout << "LfToWorld transformation: " << MatrixToString(LfToWorldFLOAT4X4) << std::endl;
+                // std::cout << "RfToWorld transformation: " << MatrixToString(RfToWorldFLOAT4X4) << std::endl;
 
                 // save data
                 {
@@ -840,6 +853,11 @@ namespace winrt::HL2UnityPlugin::implementation
 
                 DirectX::XMFLOAT3 pSample;
                 winrt::check_hresult(pModeAccelFrame->GetCalibratedAccelaration(&pSample));
+
+                ResearchModeSensorTimestamp timestamp_accel;
+                pSensorFrame->GetTimeStamp(&timestamp_accel);
+                auto ts_accel = PerceptionTimestampHelper::FromSystemRelativeTargetTime(HundredsOfNanoseconds(checkAndConvertUnsigned(timestamp_accel.HostTicks)));
+                pHL2ResearchMode->m_lastAccelSensorTimestamp = ts_accel.TargetTime().time_since_epoch().count();
 
                 auto pAccelSample = std::make_unique<float[]>(3);
 
@@ -1172,6 +1190,46 @@ namespace winrt::HL2UnityPlugin::implementation
         return winrt::to_hstring(msg);
     }
 
+    // hstring HL2ResearchMode::PrintRigNodeInCoordSystem(SpatialCoordinateSystem coordSys)
+    // {
+    //     if (coordSys == nullptr)
+    //     {
+    //         return nullptr;
+    //     }
+        
+    //     if (m_locator == 0)
+    //     {
+    //         std::cout << "m_locator does not exist yet!" << std::endl;
+    //         return nullptr;
+    //     }
+
+    //     ResearchModeSensorTimestamp timestamp;
+    //     m_LFSensor->GetTimeStamp(&timestamp);
+    //     SpatialLocation location = m_locator.TryLocateAtTimestamp(timestamp, coordSys);
+
+    //     // Printing the location rot and pos separately
+    //     std::cout << "Odometry Extrinsics separate: \n" << std::endl;
+    //     auto rot = location.Orientation();
+    //     auto quatInDx = XMFLOAT4(rot.x, rot.y, rot.z, rot.w);
+    //     auto rotMat = XMMatrixRotationQuaternion(XMLoadFloat4(&quatInDx));
+    //     std::cout << rotMat << std::endl; 
+    //     auto pos = location.Position();
+    //     auto posMat = XMMatrixTranslation(pos.x, pos.y, pos.z);
+    //     std::cout << posMat << std::endl;
+
+    //     // Printing the entire tranformation matrix, this should be rigNode location in coordSys
+    //     XMMATRIX locationMat = SpatialLocationToDxMatrix(location);
+    //     XMFLOAT4X4 locationMatFloat4X4;
+    //     XMStoreFloat4x4(&locationMatFloat4X4, locationMat);
+
+    //     std::stringstream ss;
+    //     ss << "Odometry Extrinsics: \n" << MatrixToString(locationMatFloat4X4);
+    //     std::string msg = ss.str();
+    //     std::wstring widemsg = std::wstring(msg.begin(), msg.end());
+    //     OutputDebugString(widemsg.c_str());
+    //     return winrt::to_hstring(msg);
+    // }
+
     std::string HL2ResearchMode::MatrixToString(DirectX::XMFLOAT4X4 mat)
     {
         std::stringstream ss;
@@ -1475,7 +1533,7 @@ namespace winrt::HL2UnityPlugin::implementation
         return tempBuffer;
     }
 
-    com_array<float> HL2ResearchMode::GetAccelSample()
+    com_array<float> HL2ResearchMode::GetAccelSample(int64_t& ts)
     {
         std::lock_guard<std::mutex> l(mu);
         if (!m_accelSample)
@@ -1483,6 +1541,7 @@ namespace winrt::HL2UnityPlugin::implementation
             return com_array<float>(3);
         }
         com_array<float> tempBuffer = com_array<float>(std::move_iterator(m_accelSample), std::move_iterator(m_accelSample + 3));
+        ts = m_lastAccelSensorTimestamp;
         m_accelSampleUpdated = false;
         return tempBuffer;
     }
@@ -1527,7 +1586,7 @@ namespace winrt::HL2UnityPlugin::implementation
 
     // Get the buffer for point cloud in the form of float array.
     // There will be 3n elements in the array where the 3i, 3i+1, 3i+2 element correspond to x, y, z component of the i'th point. (i->[0,n-1])
-    com_array<float> HL2ResearchMode::GetLongThrowPointCloudBuffer()
+    com_array<float> HL2ResearchMode::GetLongThrowPointCloudBuffer(int64_t& ts)
     {
         std::lock_guard<std::mutex> l(mu);
         {
@@ -1542,6 +1601,7 @@ namespace winrt::HL2UnityPlugin::implementation
         {
             return com_array<float>();
         };
+        ts = m_lastLongThrowPointCloudTimestamp;
         com_array<float> tempBuffer = com_array<float>(std::move_iterator(m_longThrowPointCloud), std::move_iterator(m_longThrowPointCloud + m_longThrowPointcloudLength));
         m_longThrowPointCloudUpdated = false;
         return tempBuffer;

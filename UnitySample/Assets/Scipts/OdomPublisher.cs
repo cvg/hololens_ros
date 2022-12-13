@@ -165,12 +165,6 @@ public class OdomPublisher : MonoBehaviour
     private void UpdateMessageUsingWindowsSpatialLocator()
     {
 #if WINDOWS_UWP
-        // Update header
-        message.header.seq++;
-        float deltaTime = (float)(Time.realtimeSinceStartup - previousRealTime);
-        double midTime = previousRealTime + ((Time.realtimeSinceStartup - previousRealTime) / 2.0);
-        message.header.stamp.sec = (uint)midTime;
-        message.header.stamp.nanosec = (uint)((midTime - (int)message.header.stamp.sec) * 1e9);
 
         // Adding the Pose
         Debug.Log("Adding the pose to message using spatial locator");
@@ -179,8 +173,8 @@ public class OdomPublisher : MonoBehaviour
         // Getting the Device Spatial Locator
         var perceptionTimestamp = GetCurrentTimestamp();
         var DeviceSpatialLocation = Windows.Perception.Spatial.SpatialLocator.GetDefault().TryLocateAtTimestamp(perceptionTimestamp, unityWorldOrigin); // unityWorldOrigin is a SpatialCoordinateSystem
-        var DeviceStationaryCoordSys = Windows.Perception.Spatial.SpatialLocator.GetDefault().CreateStationaryFrameOfReferenceAtCurrentLocation().CoordinateSystem;
-        var PreviousInCurrent = Windows.Perception.Spatial.SpatialLocator.GetDefault().TryLocateAtTimestamp(previousTimestamp, DeviceStationaryCoordSys);
+        // var DeviceStationaryCoordSys = Windows.Perception.Spatial.SpatialLocator.GetDefault().CreateStationaryFrameOfReferenceAtCurrentLocation().CoordinateSystem;
+        // var PreviousInCurrent = Windows.Perception.Spatial.SpatialLocator.GetDefault().TryLocateAtTimestamp(previousTimestamp, DeviceStationaryCoordSys);        
 
         Vector3 devicePosition = new Vector3(DeviceSpatialLocation.Position.X, DeviceSpatialLocation.Position.Y, DeviceSpatialLocation.Position.Z);
         Quaternion deviceRotation = new Quaternion
@@ -198,13 +192,35 @@ public class OdomPublisher : MonoBehaviour
         Debug.Log("devicePosition POS: " + devicePosition);
         Debug.Log("deviceRotation ORI: " + deviceRotation);
 
+        // Update header timestamps, and get deltatime
+        message.header.seq++;
+        float tSinceStartup = Time.realtimeSinceStartup;
+        float deltaTime = (float)(tSinceStartup - previousRealTime);
+        // double midTime = previousRealTime + ((tSinceStartup - previousRealTime) / 2.0);
+        // message.header.stamp.sec = (uint)midTime;
+        // message.header.stamp.nanosec = (uint)((midTime - (int)message.header.stamp.sec) * 1e9);
+
+        // Update header timestamp using time from GetSystemTimePreciseAsFileTime from Windows
+        //      1 tick = 100 ns
+        //      1 sec  = 10000000 ticks
+        var systemDTOffset = perceptionTimestamp.TargetTime;
+        var ts = systemDTOffset.ToFileTime();
+        // // message.header.stamp.sec = (uint)(systemDTOffset.Ticks/TimeSpan.TicksPerSecond); // Just the number of seconds
+        // message.header.stamp.sec = (uint)(systemDTOffset.Ticks); // Just the number of hundreds of nanoseconds
+        // message.header.stamp.nanosec = (uint)( (systemDTOffset.Ticks) - (message.header.stamp.sec*TimeSpan.TicksPerSecond) ) * 100; // Number of ns with the seconds subtracted
+
+        message.header.stamp.sec = (uint)(ts/TimeSpan.TicksPerSecond); // Just the number of seconds
+        // message.header.stamp.sec = (uint)(ts); // Just the number of hundredsofnanoseconds
+        message.header.stamp.nanosec = (uint)( (ts) - (message.header.stamp.sec*TimeSpan.TicksPerSecond) ) * 100; // Number of ns with the seconds subtracted
+
         // Adding the Twist
         Debug.Log("Adding twist to message");
         Vector3 linearVelocity = (devicePosition - previousPosition)/deltaTime;
-        linearVelocity = Quaternion.Inverse(deviceRotation) * linearVelocity;
+        linearVelocity = Quaternion.Inverse(deviceRotation) * linearVelocity; // JULIA:??????????????????????????????
         Vector3 angularVelocity = (deviceRotation.eulerAngles - previousRotation.eulerAngles)/deltaTime;
 
         linearVelocity.z = -linearVelocity.z; // Undo the flip in z for linear velocity
+        angularVelocity.z = -angularVelocity.z; // Dec 9, before HILTI demo fix, angular velocity z should be flipped
         message.twist.twist.linear = GetGeometryVector3(linearVelocity);
         angularVelocity = DegToRad(angularVelocity);
         message.twist.twist.angular = GetGeometryVector3(angularVelocity); // JULIA ?????????????????????????????
@@ -235,7 +251,7 @@ public class OdomPublisher : MonoBehaviour
 /////////////////////////////////////////////////////
 
 
-        previousRealTime = Time.realtimeSinceStartup;
+        previousRealTime = tSinceStartup;
         previousPosition = devicePosition;
         previousRotation = deviceRotation;
 

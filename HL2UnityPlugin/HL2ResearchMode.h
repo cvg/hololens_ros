@@ -87,12 +87,12 @@ namespace winrt::HL2UnityPlugin::implementation
         com_array<uint8_t> GetRRCameraBuffer(int64_t& ts);
         com_array<uint8_t> GetLRFCameraBuffer(int64_t& ts_left, int64_t& ts_right);
 
-        com_array<float> GetAccelSample();
+        com_array<float> GetAccelSample(int64_t& ts);
         com_array<float> GetGyroSample();
         com_array<float> GetMagSample();
 
         com_array<float> GetPointCloudBuffer();
-        com_array<float> GetLongThrowPointCloudBuffer();
+        com_array<float> GetLongThrowPointCloudBuffer(int64_t& ts);
         com_array<float> GetCenterPoint();
         std::mutex mu;
 
@@ -101,6 +101,7 @@ namespace winrt::HL2UnityPlugin::implementation
         int m_pointcloudLength = 0;
         float* m_longThrowPointCloud = nullptr;
         int m_longThrowPointcloudLength = 0;
+        int64_t m_lastLongThrowPointCloudTimestamp = 0;
         UINT16* m_depthMap = nullptr;
         UINT8* m_depthMapTexture = nullptr;
         UINT16* m_shortAbImage = nullptr;
@@ -117,6 +118,7 @@ namespace winrt::HL2UnityPlugin::implementation
         float* m_accelSample = nullptr;
         float* m_gyroSample = nullptr;
         float* m_magSample = nullptr;
+        int64_t m_lastAccelSensorTimestamp = 0; // Only the accel timestamp exposed
 
         IResearchModeSensor* m_depthSensor = nullptr;
         IResearchModeCameraSensor* m_pDepthCameraSensor = nullptr;
@@ -190,7 +192,7 @@ namespace winrt::HL2UnityPlugin::implementation
         static void MagSensorLoop(HL2ResearchMode* pHL2ResearchMode);
         static void CamAccessOnComplete(ResearchModeSensorConsent consent);
         static void ImuAccessOnComplete(ResearchModeSensorConsent consent);
-        std::string MatrixToString(DirectX::XMFLOAT4X4 mat);
+        static std::string MatrixToString(DirectX::XMFLOAT4X4 mat);
         DirectX::XMFLOAT4X4 m_depthCameraPose;
         DirectX::XMMATRIX m_depthCameraPoseInvMatrix;
         DirectX::XMFLOAT4X4 m_longDepthCameraPose;
