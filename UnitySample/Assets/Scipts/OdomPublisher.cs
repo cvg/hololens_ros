@@ -77,6 +77,8 @@ public class OdomPublisher : MonoBehaviour
         previousTimestamp = GetCurrentTimestamp();
 #endif
 
+
+        
     }
 
     void FixedUpdate()
@@ -117,50 +119,50 @@ public class OdomPublisher : MonoBehaviour
         };
     }
 
-    private void UpdateMessage()
-    {
-        // Add check to see if odometry never changed (aka lose tracking)
+    // private void UpdateMessage()
+    // {
+    //     // Add check to see if odometry never changed (aka lose tracking)
 
-        // Update header
-        message.header.seq++;
-        // timer.Now(message.header.stamp);
-        // // Get the midpoint time
-        float deltaTime = (float)(Time.realtimeSinceStartup - previousRealTime);
-        double midTime = previousRealTime + ((Time.realtimeSinceStartup - previousRealTime) / 2.0);
-        message.header.stamp.sec = (uint)midTime;
-        message.header.stamp.nanosec = (uint)((midTime - (int)message.header.stamp.sec) * 1e9);
+    //     // Update header
+    //     message.header.seq++;
+    //     // timer.Now(message.header.stamp);
+    //     // // Get the midpoint time
+    //     float deltaTime = (float)(Time.realtimeSinceStartup - previousRealTime);
+    //     double midTime = previousRealTime + ((Time.realtimeSinceStartup - previousRealTime) / 2.0);
+    //     message.header.stamp.sec = (uint)midTime;
+    //     message.header.stamp.nanosec = (uint)((midTime - (int)message.header.stamp.sec) * 1e9);
         
-        // Adding the Pose
-        Debug.Log("Adding the pose to message");
-        var relativePosition = World.InverseTransformPoint(Device.position);
-        Quaternion relativeRotation = Quaternion.Inverse(World.rotation) * Device.rotation;
-        Debug.Log("relativePosition: " + relativePosition);
-        Debug.Log("relativeRotation: " + relativeRotation);
-        Debug.Log("Device.rotation: " + Device.rotation);
+    //     // Adding the Pose
+    //     Debug.Log("Adding the pose to message");
+    //     var relativePosition = World.InverseTransformPoint(Device.position); // Device position in the world
+    //     Quaternion relativeRotation = Quaternion.Inverse(World.rotation) * Device.rotation;
+    //     Debug.Log("relativePosition: " + relativePosition);
+    //     Debug.Log("relativeRotation: " + relativeRotation);
+    //     Debug.Log("Device.rotation: " + Device.rotation);
 
-        // Turning the Pose to ROS messages
-        GetGeometryPoint(relativePosition.Unity2Ros(), message.pose.pose.position);
-        GetGeometryQuaternion(relativeRotation.Unity2Ros(), message.pose.pose.orientation);
+    //     // Turning the Pose to ROS messages
+    //     GetGeometryPoint(relativePosition.Unity2Ros(), message.pose.pose.position);
+    //     GetGeometryQuaternion(relativeRotation.Unity2Ros(), message.pose.pose.orientation);
 
-        // Adding the Twist
-        Debug.Log("Adding twist to message");
-        Vector3 linearVelocity = (relativePosition - previousPosition)/deltaTime;
-        linearVelocity = relativeRotation * linearVelocity;
+    //     // Adding the Twist
+    //     Debug.Log("Adding twist to message");
+    //     Vector3 linearVelocity = (relativePosition - previousPosition)/deltaTime;
+    //     linearVelocity = relativeRotation * linearVelocity;
 
-        Vector3 angularVelocity = (relativeRotation.eulerAngles - previousRotation.eulerAngles)/deltaTime;
+    //     Vector3 angularVelocity = (relativeRotation.eulerAngles - previousRotation.eulerAngles)/deltaTime;
 
-        message.twist.twist.linear = GetGeometryVector3(linearVelocity.Unity2Ros());
-        message.twist.twist.angular = GetGeometryVector3(angularVelocity.Unity2Ros());
+    //     message.twist.twist.linear = GetGeometryVector3(linearVelocity.Unity2Ros());
+    //     message.twist.twist.angular = GetGeometryVector3(angularVelocity.Unity2Ros());
 
-        previousRealTime = Time.realtimeSinceStartup;
-        previousPosition = relativePosition;
-        previousRotation = relativeRotation;
+    //     previousRealTime = Time.realtimeSinceStartup;
+    //     previousPosition = relativePosition;
+    //     previousRotation = relativeRotation;
 
-        // Publish Odometry Message
-        Debug.Log("Publishing OdometryMsg");
-        ros.Publish(OdomTopicName, message);
-        Debug.Log("Published OdometryMsg");
-    }
+    //     // Publish Odometry Message
+    //     Debug.Log("Publishing OdometryMsg");
+    //     ros.Publish(OdomTopicName, message);
+    //     Debug.Log("Published OdometryMsg");
+    // }
 
     private void UpdateMessageUsingWindowsSpatialLocator()
     {

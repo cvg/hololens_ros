@@ -1190,45 +1190,53 @@ namespace winrt::HL2UnityPlugin::implementation
         return winrt::to_hstring(msg);
     }
 
-    // hstring HL2ResearchMode::PrintRigNodeInCoordSystem(SpatialCoordinateSystem coordSys)
-    // {
-    //     if (coordSys == nullptr)
-    //     {
-    //         return nullptr;
-    //     }
+    hstring HL2ResearchMode::PrintRigNodeInCoordSystem(SpatialCoordinateSystem coordSys)
+    {
+        if (coordSys == nullptr)
+        {
+            return winrt::to_hstring("coordSys not valid");
+        }
         
-    //     if (m_locator == 0)
-    //     {
-    //         std::cout << "m_locator does not exist yet!" << std::endl;
-    //         return nullptr;
-    //     }
+        if (m_locator == 0)
+        {
+            std::cout << "m_locator does not exist yet!" << std::endl;
+            return winrt::to_hstring("m_locator does not exist yet");
+        }
 
-    //     ResearchModeSensorTimestamp timestamp;
-    //     m_LFSensor->GetTimeStamp(&timestamp);
-    //     SpatialLocation location = m_locator.TryLocateAtTimestamp(timestamp, coordSys);
 
-    //     // Printing the location rot and pos separately
-    //     std::cout << "Odometry Extrinsics separate: \n" << std::endl;
-    //     auto rot = location.Orientation();
-    //     auto quatInDx = XMFLOAT4(rot.x, rot.y, rot.z, rot.w);
-    //     auto rotMat = XMMatrixRotationQuaternion(XMLoadFloat4(&quatInDx));
-    //     std::cout << rotMat << std::endl; 
-    //     auto pos = location.Position();
-    //     auto posMat = XMMatrixTranslation(pos.x, pos.y, pos.z);
-    //     std::cout << posMat << std::endl;
+        IResearchModeSensorFrame* pLFCameraFrame = nullptr;
+        m_LFSensor->GetNextBuffer(&pLFCameraFrame);
 
-    //     // Printing the entire tranformation matrix, this should be rigNode location in coordSys
-    //     XMMATRIX locationMat = SpatialLocationToDxMatrix(location);
-    //     XMFLOAT4X4 locationMatFloat4X4;
-    //     XMStoreFloat4x4(&locationMatFloat4X4, locationMat);
+        IResearchModeSensorVLCFrame* pLFFrame = nullptr;
+        winrt::check_hresult(pLFCameraFrame->QueryInterface(IID_PPV_ARGS(&pLFFrame)));
 
-    //     std::stringstream ss;
-    //     ss << "Odometry Extrinsics: \n" << MatrixToString(locationMatFloat4X4);
-    //     std::string msg = ss.str();
-    //     std::wstring widemsg = std::wstring(msg.begin(), msg.end());
-    //     OutputDebugString(widemsg.c_str());
-    //     return winrt::to_hstring(msg);
-    // }
+        ResearchModeSensorTimestamp timestamp;
+        pLFCameraFrame->GetTimeStamp(&timestamp);
+        auto ts = PerceptionTimestampHelper::FromSystemRelativeTargetTime(HundredsOfNanoseconds(checkAndConvertUnsigned(timestamp.HostTicks)));
+        SpatialLocation location = m_locator.TryLocateAtTimestamp(ts, coordSys);
+
+        // // Printing the location rot and pos separately
+        // std::cout << "Odometry Extrinsics separate: \n" << std::endl;
+        // auto rot = location.Orientation();
+        // auto quatInDx = XMFLOAT4(rot.x, rot.y, rot.z, rot.w);
+        // auto rotMat = XMMatrixRotationQuaternion(XMLoadFloat4(&quatInDx));
+        // std::cout << rotMat << std::endl; 
+        // auto pos = location.Position();
+        // auto posMat = XMMatrixTranslation(pos.x, pos.y, pos.z);
+        // std::cout << posMat << std::endl;
+
+        // Printing the entire tranformation matrix, this should be rigNode location in coordSys
+        XMMATRIX locationMat = SpatialLocationToDxMatrix(location);
+        XMFLOAT4X4 locationMatFloat4X4;
+        XMStoreFloat4x4(&locationMatFloat4X4, locationMat);
+
+        std::stringstream ss;
+        ss << "Odometry Extrinsics: \n" << MatrixToString(locationMatFloat4X4);
+        std::string msg = ss.str();
+        std::wstring widemsg = std::wstring(msg.begin(), msg.end());
+        OutputDebugString(widemsg.c_str());
+        return winrt::to_hstring(msg);
+    }
 
     std::string HL2ResearchMode::MatrixToString(DirectX::XMFLOAT4X4 mat)
     {

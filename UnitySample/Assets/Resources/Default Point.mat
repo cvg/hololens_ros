@@ -50,7 +50,7 @@ Material:
     - _FlipbookMode: 0
     - _LightingEnabled: 0
     - _Mode: 0
-    - _PointSize: 0.0025000002
+    - _PointSize: 0.01
     - _SoftParticlesEnabled: 0
     - _SoftParticlesFarFadeDistance: 1
     - _SoftParticlesNearFadeDistance: 0

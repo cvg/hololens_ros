@@ -39,6 +39,9 @@ namespace winrt::HL2UnityPlugin::implementation
         hstring PrintAccelExtrinsics();
         hstring PrintGyroExtrinsics();
 
+        hstring PrintRigNodeInCoordSystem(Windows::Perception::Spatial::SpatialCoordinateSystem coordSys);
+
+
         void InitializeDepthSensor();
         void InitializeLongDepthSensor();
         void InitializeSpatialCamerasFront();

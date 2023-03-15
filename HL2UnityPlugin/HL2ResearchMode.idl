@@ -44,6 +44,8 @@ namespace HL2UnityPlugin
         String PrintAccelExtrinsics();
         String PrintGyroExtrinsics();
 
+        String PrintRigNodeInCoordSystem(Windows.Perception.Spatial.SpatialCoordinateSystem coordSys);
+
         Boolean DepthMapTextureUpdated();
         Boolean ShortAbImageTextureUpdated();
         Boolean LongAbImageTextureUpdated();

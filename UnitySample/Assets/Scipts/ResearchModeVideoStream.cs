@@ -231,6 +231,8 @@ public class ResearchModeVideoStream : MonoBehaviour
         researchMode.PrintRFExtrinsics();
         researchMode.PrintLLExtrinsics();
         researchMode.PrintRRExtrinsics();
+
+        researchMode.PrintRigNodeInCoordSystem(unityWorldOrigin);
 #endif
     }
 
