@@ -76,7 +76,7 @@ public class VideoPanelApp : MonoBehaviour
         {
             // JULIA: Start the ROS connection
             ros = ROSConnection.GetOrCreateInstance();
-            ros.RegisterPublisher<ImageMsg>(RGBImageTopicName, 5); // queue size
+            ros.RegisterPublisher<ImageMsg>(RGBImageTopicName, 2); // queue size
             Debug.Log("Registered RGB Image publisher");
         }
 
