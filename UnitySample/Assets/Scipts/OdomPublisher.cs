@@ -119,51 +119,6 @@ public class OdomPublisher : MonoBehaviour
         };
     }
 
-    // private void UpdateMessage()
-    // {
-    //     // Add check to see if odometry never changed (aka lose tracking)
-
-    //     // Update header
-    //     message.header.seq++;
-    //     // timer.Now(message.header.stamp);
-    //     // // Get the midpoint time
-    //     float deltaTime = (float)(Time.realtimeSinceStartup - previousRealTime);
-    //     double midTime = previousRealTime + ((Time.realtimeSinceStartup - previousRealTime) / 2.0);
-    //     message.header.stamp.sec = (uint)midTime;
-    //     message.header.stamp.nanosec = (uint)((midTime - (int)message.header.stamp.sec) * 1e9);
-        
-    //     // Adding the Pose
-    //     Debug.Log("Adding the pose to message");
-    //     var relativePosition = World.InverseTransformPoint(Device.position); // Device position in the world
-    //     Quaternion relativeRotation = Quaternion.Inverse(World.rotation) * Device.rotation;
-    //     Debug.Log("relativePosition: " + relativePosition);
-    //     Debug.Log("relativeRotation: " + relativeRotation);
-    //     Debug.Log("Device.rotation: " + Device.rotation);
-
-    //     // Turning the Pose to ROS messages
-    //     GetGeometryPoint(relativePosition.Unity2Ros(), message.pose.pose.position);
-    //     GetGeometryQuaternion(relativeRotation.Unity2Ros(), message.pose.pose.orientation);
-
-    //     // Adding the Twist
-    //     Debug.Log("Adding twist to message");
-    //     Vector3 linearVelocity = (relativePosition - previousPosition)/deltaTime;
-    //     linearVelocity = relativeRotation * linearVelocity;
-
-    //     Vector3 angularVelocity = (relativeRotation.eulerAngles - previousRotation.eulerAngles)/deltaTime;
-
-    //     message.twist.twist.linear = GetGeometryVector3(linearVelocity.Unity2Ros());
-    //     message.twist.twist.angular = GetGeometryVector3(angularVelocity.Unity2Ros());
-
-    //     previousRealTime = Time.realtimeSinceStartup;
-    //     previousPosition = relativePosition;
-    //     previousRotation = relativeRotation;
-
-    //     // Publish Odometry Message
-    //     Debug.Log("Publishing OdometryMsg");
-    //     ros.Publish(OdomTopicName, message);
-    //     Debug.Log("Published OdometryMsg");
-    // }
-
     private void UpdateMessageUsingWindowsSpatialLocator()
     {
 #if WINDOWS_UWP
@@ -198,21 +153,14 @@ public class OdomPublisher : MonoBehaviour
         message.header.seq++;
         float tSinceStartup = Time.realtimeSinceStartup;
         float deltaTime = (float)(tSinceStartup - previousRealTime);
-        // double midTime = previousRealTime + ((tSinceStartup - previousRealTime) / 2.0);
-        // message.header.stamp.sec = (uint)midTime;
-        // message.header.stamp.nanosec = (uint)((midTime - (int)message.header.stamp.sec) * 1e9);
 
         // Update header timestamp using time from GetSystemTimePreciseAsFileTime from Windows
         //      1 tick = 100 ns
         //      1 sec  = 10000000 ticks
         var systemDTOffset = perceptionTimestamp.TargetTime;
         var ts = systemDTOffset.ToFileTime();
-        // // message.header.stamp.sec = (uint)(systemDTOffset.Ticks/TimeSpan.TicksPerSecond); // Just the number of seconds
-        // message.header.stamp.sec = (uint)(systemDTOffset.Ticks); // Just the number of hundreds of nanoseconds
-        // message.header.stamp.nanosec = (uint)( (systemDTOffset.Ticks) - (message.header.stamp.sec*TimeSpan.TicksPerSecond) ) * 100; // Number of ns with the seconds subtracted
 
         message.header.stamp.sec = (uint)(ts/TimeSpan.TicksPerSecond); // Just the number of seconds
-        // message.header.stamp.sec = (uint)(ts); // Just the number of hundredsofnanoseconds
         message.header.stamp.nanosec = (uint)( (ts) - (message.header.stamp.sec*TimeSpan.TicksPerSecond) ) * 100; // Number of ns with the seconds subtracted
 
         // Adding the Twist
@@ -226,32 +174,6 @@ public class OdomPublisher : MonoBehaviour
         message.twist.twist.linear = GetGeometryVector3(linearVelocity);
         angularVelocity = DegToRad(angularVelocity);
         message.twist.twist.angular = GetGeometryVector3(angularVelocity); // JULIA ?????????????????????????????
-
-////////////////////////////////////////////////////
-        // // Print PreviousInCurrent
-        // var PreviousInCurrentPos = PreviousInCurrent.Position;
-        // var PreviousInCurrentOri = PreviousInCurrent.Orientation;
-        // Debug.Log("PreviousInCurrent POS: " + PreviousInCurrentPos);
-        // Debug.Log("PreviousInCurrent ORI: " + PreviousInCurrentOri);
-
-        // Vector3 prevPos = new Vector3(PreviousInCurrent.Position.X, PreviousInCurrent.Position.Y, PreviousInCurrent.Position.Z);
-        // Quaternion prevRot = new Quaternion
-        // {
-        //     x = PreviousInCurrent.Orientation.X,
-        //     y = PreviousInCurrent.Orientation.Y,
-        //     z = PreviousInCurrent.Orientation.Z,
-        //     w = PreviousInCurrent.Orientation.W
-        // };
-
-        // // Adding the Twist from PREV
-        // Debug.Log("Adding twist to message");
-        // Vector3 linearVelocity = (-prevPos)/deltaTime;
-        // Vector3 angularVelocity = (-prevRot.eulerAngles)/deltaTime;
-
-        // message.twist.twist.linear = GetGeometryVector3(linearVelocity);
-        // message.twist.twist.angular = GetGeometryVector3(angularVelocity);
-/////////////////////////////////////////////////////
-
 
         previousRealTime = tSinceStartup;
         previousPosition = devicePosition;
