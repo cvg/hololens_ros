@@ -1,86 +1,52 @@
 ﻿using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
+
+using Unity.Robotics.ROSTCPConnector;
+using RosMessageTypes.Geometry;
+using RosMessageTypes.Sensor;
+using RosMessageTypes.BuiltinInterfaces;
+using RosMessageTypes.Std;
+using RosMessageTypes.Nav;
+
+#if ENABLE_WINMD_SUPPORT
+using HL2UnityPlugin;
+#endif
+
+using Unity.Robotics.Visualizations;
 
 public class PointCloudRenderer : MonoBehaviour
 {
-    public int maxChunkSize = 65535;
-    public float pointSize = 0.005f;
-    public GameObject pointCloudElem;
-    public Material pointCloudMaterial;
+    ROSConnection ros;
+    public GameObject visTopicsTabGameObject;
 
-    List<GameObject> elems;
+    public ConfigReader configReader;
 
-    void Start()
+    IEnumerator Start()
     {
-        elems = new List<GameObject>();
-        UpdatePointSize();
-    }
+        yield return new WaitForSeconds(5f);
+        
+        ros = ROSConnection.GetOrCreateInstance();
+        VisualizationTopicsTab vistab = visTopicsTabGameObject.GetComponent<VisualizationTopicsTab>();
 
-    void Update()
-    {
-        if (transform.hasChanged)
+        string PCTopic = "/PCtoVisualize";
+        Debug.Log("Setting up subscriber for pc " + PCTopic);
+
+        // Add new topic for /PCtoVisualize
+        RosTopicState state = ros.GetOrCreateTopic(PCTopic, "sensor_msgs/PointCloud2", false);
+        vistab.OnNewTopicPublic(state);
+
+        VisualizationTopicsTabEntry vis;
+        vis = vistab.getVisTab(PCTopic);
+
+        if (vis == null)
         {
-            UpdatePointSize();
-            transform.hasChanged = false;
+            Debug.LogError("VisualizationTopicsTabEntry not found for " + PCTopic);
+            yield break;
         }
-    }
 
-    public void UpdatePointSize()
-    {
-        pointCloudMaterial.SetFloat("_PointSize", pointSize * transform.localScale.x);
-    }
-
-    public void Render(Vector3[] arrVertices, Color pointColor)
-    {
-        // int nPoints, nChunks;
-        // if (arrVertices == null)
-        // {
-        //     nPoints = 0;
-        //     nChunks = 0;
-        // }
-        // else
-        // {
-        //     nPoints = arrVertices.Length;
-        //     nChunks = 1 + nPoints / maxChunkSize;
-        // }
-
-        // if (elems.Count < nChunks)
-        //     AddElems(nChunks - elems.Count);
-        // if (elems.Count > nChunks)
-        //     RemoveElems(elems.Count - nChunks);
-
-        // int offset = 0;
-        // for (int i = 0; i < nChunks; i++)
-        // {
-        //     int nPointsToRender = System.Math.Min(maxChunkSize, nPoints - offset);
-
-        //     ElemRenderer renderer = elems[i].GetComponent<ElemRenderer>();
-        //     renderer.UpdateMesh(arrVertices, nPointsToRender, offset, pointColor);
-
-        //     offset += nPointsToRender;
-        // }
-    }
-
-    void AddElems(int nElems)
-    {
-        for (int i = 0; i < nElems; i++)
-        {
-            GameObject newElem = GameObject.Instantiate(pointCloudElem);
-            newElem.transform.parent = transform;
-            newElem.transform.localPosition = new Vector3(0.0f, 0.0f, 0.0f);
-            newElem.transform.localRotation = Quaternion.identity;
-            newElem.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
-
-            elems.Add(newElem);
-        }
-    }
-
-    void RemoveElems(int nElems)
-    {
-        for (int i = 0; i < nElems; i++)
-        {
-            Destroy(elems[0]);
-            elems.Remove(elems[0]);
-        }
+        PointCloud2DefaultVisualizer visFactory = (PointCloud2DefaultVisualizer)(vis.GetVisualFactory());
+        ((PointCloud2DefaultVisualizer)visFactory).GetOrCreateVisual(PCTopic).SetDrawingEnabled(true);
+        Debug.Log("VisualizationTopicsTab connected to" + ros.RosIPAddress + " " + ros.RosPort);       
     }
 }

@@ -14,7 +14,7 @@ public class ConfigReader : MonoBehaviour
 {
     public bool FinishedReader = false;
 
-    public string ip = "129.132.105.150";
+    public string ip = "192.168.1.114";
     public int port = 9090;
 
     private ROSConnection ros;
