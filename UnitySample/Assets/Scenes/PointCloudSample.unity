@@ -637,11 +637,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b5029f5d0d1a754f8a40677a100352f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxChunkSize: 65535
-  pointSize: 0.001
-  pointCloudElem: {fileID: 7258565985952825044, guid: 0e103885be9aa884ebc9d16411d8b804,
-    type: 3}
-  pointCloudMaterial: {fileID: 2100000, guid: 410bd770d3b6d8943be1474daa7e822c, type: 2}
+  visTopicsTabGameObject: {fileID: 0}
+  configReader: {fileID: 0}
 --- !u!1 &177338861
 GameObject:
   m_ObjectHideFlags: 0
@@ -5192,7 +5189,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   FinishedReader: 0
-  ip: 192.168.1.24
+  ip: 192.168.1.114
   port: 9090
 --- !u!4 &1119771596
 Transform:
@@ -5758,6 +5755,7 @@ GameObject:
   - component: {fileID: 1404162259}
   - component: {fileID: 1404162258}
   - component: {fileID: 1404162257}
+  - component: {fileID: 1404162260}
   m_Layer: 0
   m_Name: VisualizationSuite
   m_TagString: Untagged
@@ -5806,6 +5804,20 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 10
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1404162260
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1404162256}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b5029f5d0d1a754f8a40677a100352f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  visTopicsTabGameObject: {fileID: 1404162256}
+  configReader: {fileID: 1119771595}
 --- !u!1 &1473865778
 GameObject:
   m_ObjectHideFlags: 0

@@ -85,7 +85,7 @@ public class ResearchModeVideoStream : MonoBehaviour
 
     public GameObject pointCloudRendererGo;
     public Color pointColor = Color.white;
-    private PointCloudRenderer pointCloudRenderer;
+    // private PointCloudRenderer pointCloudRenderer;
 #if ENABLE_WINMD_SUPPORT
     Windows.Perception.Spatial.SpatialCoordinateSystem unityWorldOrigin;
 #endif
@@ -203,7 +203,7 @@ public class ResearchModeVideoStream : MonoBehaviour
 
         if (pointCloudRendererGo != null)
         {
-            pointCloudRenderer = pointCloudRendererGo.GetComponent<PointCloudRenderer>();
+            // pointCloudRenderer = pointCloudRendererGo.GetComponent<PointCloudRenderer>();
         }
 
         tcpClient = GetComponent<TCPClient>();
@@ -579,7 +579,7 @@ public class ResearchModeVideoStream : MonoBehaviour
                     pointCloudVector3[i] = new Vector3(pointCloud[3 * i], pointCloud[3 * i + 1], pointCloud[3 * i + 2]);
                 }
                 text.text = "Point Cloud Length: " + pointCloudVector3.Length.ToString();
-                pointCloudRenderer.Render(pointCloudVector3, pointColor);
+                // pointCloudRenderer.Render(pointCloudVector3, pointColor);
 
                 // JULIA: Send the Vector3[] of point cloud to ROS
                 // Convert to byte[]

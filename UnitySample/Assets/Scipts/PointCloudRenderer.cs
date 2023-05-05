@@ -24,7 +24,7 @@ public class PointCloudRenderer : MonoBehaviour
 
     IEnumerator Start()
     {
-        yield return new WaitForSeconds(5f);
+        yield return new WaitUntil(() => configReader.FinishedReader);   
         
         ros = ROSConnection.GetOrCreateInstance();
         VisualizationTopicsTab vistab = visTopicsTabGameObject.GetComponent<VisualizationTopicsTab>();
