@@ -250,6 +250,9 @@ PlayerSettings:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  - {fileID: 2420876100349834260, guid: 93290558a36e1bf479f221bb2102f8da, type: 2}
+  - {fileID: -1027307087885609928, guid: 88b27548eb377ad429d9f99648ed4213, type: 2}
+  - {fileID: 0}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -792,10 +795,10 @@ PlayerSettings:
       PointOfService: False
       RecordedCallsFolder: False
       Contacts: False
+      Proximity: False
       InternetClient: True
       CodeGeneration: False
       BackgroundMediaPlayback: False
-      Proximity: False
   metroTargetDeviceFamilies:
     Desktop: False
     Holographic: False
@@ -851,7 +854,7 @@ PlayerSettings:
     m_VersionName: 
   apiCompatibilityLevel: 6
   activeInputHandler: 2
-  cloudProjectId: 
+  cloudProjectId: 65472451-fef3-4fe6-aa97-448139b5d429
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
   projectName: 

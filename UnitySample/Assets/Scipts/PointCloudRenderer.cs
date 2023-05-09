@@ -15,6 +15,7 @@ using HL2UnityPlugin;
 
 using Unity.Robotics.Visualizations;
 
+// Script that renders the point cloud using VisualizationTopicsTabEntry
 public class PointCloudRenderer : MonoBehaviour
 {
     ROSConnection ros;
