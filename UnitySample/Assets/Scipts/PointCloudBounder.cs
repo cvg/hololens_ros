@@ -56,6 +56,7 @@ public class PointCloudBounder : MonoBehaviour
 
     public void OverlayPointCloud()
     {
+        // Remove all the new components added from bounds
         DestroyComponents();
 
         // Reset scale of Drawing3dManagerGO
