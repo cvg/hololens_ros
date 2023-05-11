@@ -28,6 +28,7 @@ public class PointCloudBounder : MonoBehaviour
     int x_frames_passed = 0;
 
     bool controllerMode = false;
+    string robot_odom_topic;
 
     public ConfigReader configReader;
     ROSConnection ros;
@@ -39,6 +40,9 @@ public class PointCloudBounder : MonoBehaviour
         yield return new WaitUntil(() => configReader.FinishedReader);   
         // Get the beagle in the scene
         beagle = GameObject.Find("Beagle");
+
+        // Set a robot odom topic variable
+        robot_odom_topic = configReader.robot_odom_topic;
 
         // Register publisher for /desired_pose
         ros = ROSConnection.GetOrCreateInstance();
@@ -123,7 +127,7 @@ public class PointCloudBounder : MonoBehaviour
         controllerMode = true;
 
         // Unsubscribe from anymal/odom
-        ros.Unsubscribe("/anymal/odom");
+        ros.Unsubscribe(robot_odom_topic);
 
         // Make Drawing3dManagerGO smaller
         Drawing3dManagerGO.transform.localScale = new Vector3(0.05f, 0.05f, 0.05f);
@@ -150,7 +154,7 @@ public class PointCloudBounder : MonoBehaviour
     public void BoundPointCloud()
     {
         // Subscribe to /anymal/odom Odometry topic
-        ros.Subscribe<OdometryMsg>("/anymal/odom", OdometryCallback);
+        ros.Subscribe<OdometryMsg>(robot_odom_topic, OdometryCallback);
 
         DestroyBeagleComponents();
 
@@ -179,7 +183,7 @@ public class PointCloudBounder : MonoBehaviour
     public void OverlayPointCloud()
     {
         // Subscribe to /anymal/odom Odometry topic
-        ros.Subscribe<OdometryMsg>("/anymal/odom", OdometryCallback);
+        ros.Subscribe<OdometryMsg>(robot_odom_topic, OdometryCallback);
 
         controllerMode = false;
         // Remove all the new components added from bounds

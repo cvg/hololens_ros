@@ -16,6 +16,8 @@ public class ConfigReader : MonoBehaviour
 
     public string ip = "192.168.1.114";
     public int port = 9090;
+    public string robot_odom_topic = "/anymal/odom";
+    public string point_cloud_topic = "/transformed_point_cloud_topic";
 
     private ROSConnection ros;
 
@@ -35,6 +37,8 @@ public class ConfigReader : MonoBehaviour
         ConfigFile json  = JsonConvert.DeserializeObject<ConfigFile>(fileContent);
         ip = json.ip;
         port = json.port;
+        robot_odom_topic = json.robot_odom_topic;
+        point_cloud_topic = json.point_cloud_topic;
         Debug.Log(fileContent);
 #endif
 
@@ -49,4 +53,6 @@ public class ConfigFile
 {
     public string ip { get; set; }
     public int port { get; set; }
+    public string robot_odom_topic { get; set; }
+    public string point_cloud_topic { get; set; }
 }

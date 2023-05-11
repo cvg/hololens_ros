@@ -30,7 +30,7 @@ public class PointCloudRenderer : MonoBehaviour
         ros = ROSConnection.GetOrCreateInstance();
         VisualizationTopicsTab vistab = visTopicsTabGameObject.GetComponent<VisualizationTopicsTab>();
 
-        string PCTopic = "/PCtoVisualize";
+        string PCTopic = configReader.point_cloud_topic;
         Debug.Log("Setting up subscriber for pc " + PCTopic);
 
         // Add new topic for /PCtoVisualize
@@ -45,6 +45,8 @@ public class PointCloudRenderer : MonoBehaviour
             Debug.LogError("VisualizationTopicsTabEntry not found for " + PCTopic);
             yield break;
         }
+
+        Debug.Log(vis.GetVisualFactory().GetType());
 
         PointCloud2DefaultVisualizer visFactory = (PointCloud2DefaultVisualizer)(vis.GetVisualFactory());
         ((PointCloud2DefaultVisualizer)visFactory).GetOrCreateVisual(PCTopic).SetDrawingEnabled(true);
