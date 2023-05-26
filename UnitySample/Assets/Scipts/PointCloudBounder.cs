@@ -29,6 +29,9 @@ public class PointCloudBounder : MonoBehaviour
 
     bool controllerMode = false;
     string robot_odom_topic;
+    string goal_pose_topic;
+
+    float shift_dog = 0f;
 
     public ConfigReader configReader;
     ROSConnection ros;
@@ -44,9 +47,12 @@ public class PointCloudBounder : MonoBehaviour
         // Set a robot odom topic variable
         robot_odom_topic = configReader.robot_odom_topic;
 
+        // Set goal pose topic variable
+        goal_pose_topic = "/unity_goal_pose";
+
         // Register publisher for /desired_pose
         ros = ROSConnection.GetOrCreateInstance();
-        ros.RegisterPublisher<PoseStampedMsg>("/desired_pose");
+        ros.RegisterPublisher<PoseStampedMsg>(goal_pose_topic);
 
         Drawing3dManagerGO = GameObject.Find("Drawing3dManager");
         meshRenderer = Drawing3dManagerGO.AddComponent<MeshRenderer>();
@@ -55,6 +61,22 @@ public class PointCloudBounder : MonoBehaviour
         // meshRenderer.sharedMaterial.shader = Shader.Find("Point Cloud/Point");
 
         beagle.transform.parent = Drawing3dManagerGO.transform;
+
+        // Check if subscribed to anymal/odom, otherwise subscribe to anymal/odom
+        if (!ros.HasSubscriber(robot_odom_topic))
+        {
+            ros.Subscribe<OdometryMsg>(robot_odom_topic, OdometryCallback);
+        }
+
+        // Logic to start in controller mode
+        yield return new WaitUntil(() => GameObject.Find("PointCloud") != null);
+        ControllerMode();
+    }
+
+    bool waitForPointCloud()
+    {
+
+        return true;
     }
 
     // Update is called once per frame
@@ -70,8 +92,11 @@ public class PointCloudBounder : MonoBehaviour
             // Get the rotation of the beagle
             Quaternion rotation = beagle.transform.localRotation;
 
+            // Add back the height difference we subtract earlier
+            Vector3 pos_to_publish = position + new Vector3(0.0f, shift_dog, 0.0f) * Drawing3dManagerGO.transform.localScale[0];
+
             // Convert position from Unity to ROS
-            position = position.Unity2Ros();
+            pos_to_publish = pos_to_publish.Unity2Ros();
             // Convert rotation from Unity to ROS
             rotation = rotation.Unity2Ros();
 
@@ -80,16 +105,16 @@ public class PointCloudBounder : MonoBehaviour
             // Set the header of the msg
             msg.header.frame_id = "map";
             // Set the pose of the msg
-            msg.pose.position.x = position[0];
-            msg.pose.position.y = position[1];
-            msg.pose.position.z = position[2];
+            msg.pose.position.x = pos_to_publish[0];
+            msg.pose.position.y = pos_to_publish[1];
+            msg.pose.position.z = pos_to_publish[2];
             msg.pose.orientation.x = rotation[0];
             msg.pose.orientation.y = rotation[1];
             msg.pose.orientation.z = rotation[2];
             msg.pose.orientation.w = rotation[3];
 
             // Publish the msg
-            ros.Send("/desired_pose", msg);
+            ros.Send(goal_pose_topic, msg);
 
             beagle.transform.hasChanged = false;
             x_frames_passed = 0;
@@ -106,6 +131,10 @@ public class PointCloudBounder : MonoBehaviour
         position = position.Ros2Unity();
         // Convert rotation from ROS to Unity
         rotation = rotation.Ros2Unity();
+
+        // Shift the position down, scaled to local scale, usually because the user starts the app with the beagle in the air
+        position = position - new Vector3(0.0f, shift_dog, 0.0f) * Drawing3dManagerGO.transform.localScale[0];
+        
 
         // Set local transform of beagle
         beagle.transform.localPosition = position;
@@ -126,35 +155,44 @@ public class PointCloudBounder : MonoBehaviour
     {
         controllerMode = true;
 
+        DestroyDrawing3dManagerComponents();
+
         // Unsubscribe from anymal/odom
-        ros.Unsubscribe(robot_odom_topic);
+        if (ros.HasSubscriber(robot_odom_topic))
+        {
+            ros.Unsubscribe(robot_odom_topic);
+        }
 
         // Make Drawing3dManagerGO smaller
         Drawing3dManagerGO.transform.localScale = new Vector3(0.05f, 0.05f, 0.05f);
         // Reset position of Drawing3dManagerGO
-        Drawing3dManagerGO.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
-        Drawing3dManagerGO.transform.rotation = Quaternion.identity;
+        // Drawing3dManagerGO.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
+        // Drawing3dManagerGO.transform.rotation = Quaternion.identity;
 
         meshRenderer = Drawing3dManagerGO.GetComponent<MeshRenderer>();
         meshRenderer.sharedMaterial.SetFloat("_PointSize", 0.05f * Drawing3dManagerGO.transform.localScale[0]);
 
-        // // Set beagle positions    
-        // beagle.transform.localPosition = new Vector3(0.0f, 0.0f, 0.0f);
-        // beagle.transform.localRotation = Quaternion.identity;
-
-        // Add manipulation components to beagle
+        // Add manipulation components to beagle, near interaction grabbable
         objManipulator = beagle.AddComponent<ObjectManipulator>();
-
+        beagle.AddComponent<NearInteractionGrabbable>();
+        
         // Add a listener to the objManipulator, where if the beagle is moved, the height is set to 0
         objManipulator.OnManipulationEnded.AddListener((eventData) => {
-            beagle.transform.position = new Vector3(beagle.transform.position.x, 0, beagle.transform.position.z);
+            // beagle.transform.position = new Vector3(beagle.transform.position.x, -shift_dog * Drawing3dManagerGO.transform.localScale[0], beagle.transform.position.z);
+            beagle.transform.localPosition = new Vector3(beagle.transform.localPosition.x, -shift_dog * Drawing3dManagerGO.transform.localScale[0], beagle.transform.localPosition.z);
+            // set beagle rotation as euler angles, but only around y-axis
+            // beagle.transform.rotation = Quaternion.Euler(0.0f, beagle.transform.rotation.eulerAngles[1], 0.0f);
+            beagle.transform.localRotation = Quaternion.Euler(0.0f, beagle.transform.localRotation.eulerAngles[1], 0.0f);
         });
     }
 
     public void BoundPointCloud()
     {
-        // Subscribe to /anymal/odom Odometry topic
-        ros.Subscribe<OdometryMsg>(robot_odom_topic, OdometryCallback);
+        // Check if subscribed to anymal/odom, otherwise subscribe to anymal/odom
+        if (!ros.HasSubscriber(robot_odom_topic))
+        {
+            ros.Subscribe<OdometryMsg>(robot_odom_topic, OdometryCallback);
+        }
 
         DestroyBeagleComponents();
 
@@ -182,8 +220,11 @@ public class PointCloudBounder : MonoBehaviour
 
     public void OverlayPointCloud()
     {
-        // Subscribe to /anymal/odom Odometry topic
-        ros.Subscribe<OdometryMsg>(robot_odom_topic, OdometryCallback);
+        // Check if subscribed to anymal/odom, otherwise subscribe to anymal/odom
+        if (!ros.HasSubscriber(robot_odom_topic))
+        {
+            ros.Subscribe<OdometryMsg>(robot_odom_topic, OdometryCallback);
+        }
 
         controllerMode = false;
         // Remove all the new components added from bounds

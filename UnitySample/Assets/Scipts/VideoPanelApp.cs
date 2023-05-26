@@ -49,7 +49,6 @@ public class VideoPanelApp : MonoBehaviour
     IEnumerator Start()
     {
         yield return new WaitUntil(() => configReader.FinishedReader);   
-        // yield return new WaitForSeconds(3f); // Wait 5 seconds to establish all the ROS connections
 
 
 #if ENABLE_WINMD_SUPPORT

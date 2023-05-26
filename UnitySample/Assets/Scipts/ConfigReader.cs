@@ -18,6 +18,7 @@ public class ConfigReader : MonoBehaviour
     public int port = 9090;
     public string robot_odom_topic = "/anymal/odom";
     public string point_cloud_topic = "/transformed_point_cloud_topic";
+    public string goal_pose_topic = "/unity_move_base_simple/goal";
 
     private ROSConnection ros;
 
@@ -39,6 +40,7 @@ public class ConfigReader : MonoBehaviour
         port = json.port;
         robot_odom_topic = json.robot_odom_topic;
         point_cloud_topic = json.point_cloud_topic;
+        goal_pose_topic = json.goal_pose_topic;
         Debug.Log(fileContent);
 #endif
 
@@ -55,4 +57,5 @@ public class ConfigFile
     public int port { get; set; }
     public string robot_odom_topic { get; set; }
     public string point_cloud_topic { get; set; }
+    public string goal_pose_topic { get; set; }
 }

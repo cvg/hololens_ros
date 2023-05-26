@@ -41,6 +41,8 @@ public class ResearchModeVideoStream : MonoBehaviour
     string DepthTopicName = "DepthPC";
     private float timeElapsed;
 
+    bool publishingImages = true;
+
     public GameObject depthPreviewPlane = null;
     private Material depthMediaMaterial = null;
     private Texture2D depthMediaTexture = null;
@@ -331,7 +333,7 @@ public class ResearchModeVideoStream : MonoBehaviour
         }
 
         // update LF camera texture
-        if (researchMode.LFImageUpdated())
+        if (researchMode.LFImageUpdated() && publishingImages)
         {
             long ts;
             byte[] frameTexture = researchMode.GetLFCameraBuffer(out ts);
@@ -482,7 +484,7 @@ public class ResearchModeVideoStream : MonoBehaviour
         // }
 
         // update RR camera texture
-        if (researchMode.RRImageUpdated())
+        if (researchMode.RRImageUpdated() && publishingImages)
         {
             long ts; // Should already be hundreds of nanoseconds
             byte[] frameTexture = researchMode.GetRRCameraBuffer(out ts);
@@ -738,4 +740,9 @@ public class ResearchModeVideoStream : MonoBehaviour
         return Windows.Perception.PerceptionTimestampHelper.FromHistoricalTargetTime(c.GetDateTime());
     }
 #endif
+
+    public void togglePublishingImages()
+    {
+        publishingImages = !publishingImages;
+    }
 }
