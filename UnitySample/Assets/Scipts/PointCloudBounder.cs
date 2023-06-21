@@ -24,7 +24,9 @@ public class PointCloudBounder : MonoBehaviour
     MeshRenderer meshRenderer;
     BoundsControl boundsControl;
     GameObject beagle;
+    GameObject beagleShadow;
     GameObject poodle;
+    GameObject poodleShadow;
 
     int x_frames_passed = 0;
 
@@ -72,12 +74,18 @@ public class PointCloudBounder : MonoBehaviour
         // Get the beagle in the scene
         beagle = GameObject.Find("Beagle");
         poodle = GameObject.Find("Poodle");
+        beagleShadow = GameObject.Find("BeagleShadow");
+        poodleShadow = GameObject.Find("PoodleShadow");
 
         beagle.transform.parent = Drawing3dManagerGO.transform;
         poodle.transform.parent = Drawing3dManagerGO.transform;
+        beagleShadow.transform.parent = Drawing3dManagerGO.transform;
+        poodleShadow.transform.parent = Drawing3dManagerGO.transform;
 
         beagle.SetActive(false);
         poodle.SetActive(false);
+        beagleShadow.SetActive(false);
+        poodleShadow.SetActive(false);
 
         // Check if subscribed to anymal/odom, otherwise subscribe to anymal/odom
         if (!ros.HasSubscriber(robot_odom_topic_beagle))
@@ -164,15 +172,14 @@ public class PointCloudBounder : MonoBehaviour
 
         DestroyDrawing3dManagerComponents();
 
-        // Unsubscribe from anymal/odom
-        if (ros.HasSubscriber(robot_odom_topic_beagle))
-        {
-            ros.Unsubscribe(robot_odom_topic_beagle);
-        }
-        if (ros.HasSubscriber(robot_odom_topic_poodle))
-        {
-            ros.Unsubscribe(robot_odom_topic_poodle);
-        }
+        // Set the position of the shadows to be the last known position of the dogs
+        // The actual yellow beagle and poodle will always track the odom messages
+        beagleShadow.transform.localPosition = beagle.transform.localPosition;
+        beagleShadow.transform.localRotation = beagle.transform.localRotation;
+
+        // Set the shadows to be active
+        beagleShadow.SetActive(true);
+        poodleShadow.SetActive(true);
 
         // Make Drawing3dManagerGO smaller
         Drawing3dManagerGO.transform.localScale = new Vector3(0.05f, 0.05f, 0.05f);
@@ -183,21 +190,21 @@ public class PointCloudBounder : MonoBehaviour
         meshRenderer = Drawing3dManagerGO.GetComponent<MeshRenderer>();
         meshRenderer.sharedMaterial.SetFloat("_PointSize", 0.05f * Drawing3dManagerGO.transform.localScale[0]);
 
-        // Add manipulation components to beagle, near interaction grabbable
-        objManipulator = beagle.AddComponent<ObjectManipulator>();
-        beagle.AddComponent<NearInteractionGrabbable>();
+        // Add manipulation components to beagleShadow, near interaction grabbable
+        objManipulator = beagleShadow.AddComponent<ObjectManipulator>();
+        beagleShadow.AddComponent<NearInteractionGrabbable>();
         
-        // Add a listener to the objManipulator, where if the beagle is moved, the height is set to 0
+        // Add a listener to the objManipulator, where if the beagleShadow is moved, the height is set to 0
         objManipulator.OnManipulationEnded.AddListener((eventData) => {
-            beagle.transform.localPosition = new Vector3(beagle.transform.localPosition.x, latest_odom_height_beagle, beagle.transform.localPosition.z);
-            // set beagle rotation as euler angles, but only around y-axis
-            // beagle.transform.rotation = Quaternion.Euler(0.0f, beagle.transform.rotation.eulerAngles[1], 0.0f);
-            beagle.transform.localRotation = Quaternion.Euler(0.0f, beagle.transform.localRotation.eulerAngles[1], 0.0f);
+            beagleShadow.transform.localPosition = new Vector3(beagleShadow.transform.localPosition.x, latest_odom_height_beagle, beagleShadow.transform.localPosition.z);
+            // set beagleShadow rotation as euler angles, but only around y-axis
+            // beagleShadow.transform.rotation = Quaternion.Euler(0.0f, beagleShadow.transform.rotation.eulerAngles[1], 0.0f);
+            beagleShadow.transform.localRotation = Quaternion.Euler(0.0f, beagleShadow.transform.localRotation.eulerAngles[1], 0.0f);
 
-            Vector3 position = beagle.transform.localPosition;
-            Quaternion rotation = beagle.transform.localRotation;
+            Vector3 position = beagleShadow.transform.localPosition;
+            Quaternion rotation = beagleShadow.transform.localRotation;
 
-            beagle.transform.localPosition = beagle.transform.localPosition + new Vector3(0.0f, shift_dog, 0.0f);
+            beagleShadow.transform.localPosition = beagleShadow.transform.localPosition + new Vector3(0.0f, shift_dog, 0.0f);
 
             position = position.Unity2Ros();
             rotation = rotation.Unity2Ros();
@@ -219,21 +226,21 @@ public class PointCloudBounder : MonoBehaviour
             ros.Send(goal_pose_topic_beagle, msg);
         });
 
-        // Add manipulation components to poodle, near interaction grabbable
-        objManipulator = poodle.AddComponent<ObjectManipulator>();
-        poodle.AddComponent<NearInteractionGrabbable>();
+        // Add manipulation components to poodleShadow, near interaction grabbable
+        objManipulator = poodleShadow.AddComponent<ObjectManipulator>();
+        poodleShadow.AddComponent<NearInteractionGrabbable>();
         
-        // Add a listener to the objManipulator, where if the poodle is moved, the height is set to 0
+        // Add a listener to the objManipulator, where if the poodleShadow is moved, the height is set to 0
         objManipulator.OnManipulationEnded.AddListener((eventData) => {
-            poodle.transform.localPosition = new Vector3(poodle.transform.localPosition.x, latest_odom_height_poodle, poodle.transform.localPosition.z);
-            // set poodle rotation as euler angles, but only around y-axis
-            // poodle.transform.rotation = Quaternion.Euler(0.0f, poodle.transform.rotation.eulerAngles[1], 0.0f);
-            poodle.transform.localRotation = Quaternion.Euler(0.0f, poodle.transform.localRotation.eulerAngles[1], 0.0f);
+            poodleShadow.transform.localPosition = new Vector3(poodleShadow.transform.localPosition.x, latest_odom_height_poodle, poodleShadow.transform.localPosition.z);
+            // set poodleShadow rotation as euler angles, but only around y-axis
+            // poodleShadow.transform.rotation = Quaternion.Euler(0.0f, poodleShadow.transform.rotation.eulerAngles[1], 0.0f);
+            poodleShadow.transform.localRotation = Quaternion.Euler(0.0f, poodleShadow.transform.localRotation.eulerAngles[1], 0.0f);
 
-            Vector3 position = poodle.transform.localPosition;
-            Quaternion rotation = poodle.transform.localRotation;
+            Vector3 position = poodleShadow.transform.localPosition;
+            Quaternion rotation = poodleShadow.transform.localRotation;
 
-            poodle.transform.localPosition = poodle.transform.localPosition + new Vector3(0.0f, shift_dog, 0.0f);
+            poodleShadow.transform.localPosition = poodleShadow.transform.localPosition + new Vector3(0.0f, shift_dog, 0.0f);
 
             position = position.Unity2Ros();
             rotation = rotation.Unity2Ros();
@@ -258,6 +265,10 @@ public class PointCloudBounder : MonoBehaviour
 
     public void BoundPointCloud()
     {
+        // Set shadows to inactive
+        beagleShadow.SetActive(false);
+        poodleShadow.SetActive(false);
+
         // Check if subscribed to anymal/odom, otherwise subscribe to anymal/odom
         if (!ros.HasSubscriber(robot_odom_topic_beagle))
         {
@@ -269,9 +280,8 @@ public class PointCloudBounder : MonoBehaviour
             ros.Subscribe<OdometryMsg>(robot_odom_topic_poodle, OdometryCallbackPoodle);
         }
 
-        // TODO: set things up for poodle
-        DestroyBeagleComponents();
-        DestroyPoodleComponents();
+        DestroyBeagleShadowComponents();
+        DestroyPoodleShadowComponents();
 
         controllerMode = false;
         Drawing3dManagerGO.transform.localScale = new Vector3(0.05f, 0.05f, 0.05f);
@@ -297,6 +307,10 @@ public class PointCloudBounder : MonoBehaviour
 
     public void OverlayPointCloud()
     {
+        // Set shadows to inactive
+        beagleShadow.SetActive(false);
+        poodleShadow.SetActive(false);
+
         // Check if subscribed to anymal/odom, otherwise subscribe to anymal/odom
         if (!ros.HasSubscriber(robot_odom_topic_beagle))
         {
@@ -311,8 +325,8 @@ public class PointCloudBounder : MonoBehaviour
         controllerMode = false;
         // Remove all the new components added from bounds
         DestroyDrawing3dManagerComponents();
-        DestroyBeagleComponents();
-        DestroyPoodleComponents();
+        DestroyBeagleShadowComponents();
+        DestroyPoodleShadowComponents();
 
         // Reset scale of Drawing3dManagerGO
         Drawing3dManagerGO.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
@@ -338,20 +352,20 @@ public class PointCloudBounder : MonoBehaviour
         Destroy(Drawing3dManagerGO.GetComponent<ConstraintManager>());
     }
 
-    void DestroyBeagleComponents()
+    void DestroyBeagleShadowComponents()
     {
         // Remove all the new components added from manipulator
-        Destroy(beagle.GetComponent<ObjectManipulator>());
-        Destroy(beagle.GetComponent<NearInteractionGrabbable>());
-        Destroy(beagle.GetComponent<ConstraintManager>());
+        Destroy(beagleShadow.GetComponent<ObjectManipulator>());
+        Destroy(beagleShadow.GetComponent<NearInteractionGrabbable>());
+        Destroy(beagleShadow.GetComponent<ConstraintManager>());
     }
 
-    void DestroyPoodleComponents()
+    void DestroyPoodleShadowComponents()
     {
         // Remove all the new components added from manipulator
-        Destroy(poodle.GetComponent<ObjectManipulator>());
-        Destroy(poodle.GetComponent<NearInteractionGrabbable>());
-        Destroy(poodle.GetComponent<ConstraintManager>());
+        Destroy(poodleShadow.GetComponent<ObjectManipulator>());
+        Destroy(poodleShadow.GetComponent<NearInteractionGrabbable>());
+        Destroy(poodleShadow.GetComponent<ConstraintManager>());
     }
 
     public void RescalePointSize()
