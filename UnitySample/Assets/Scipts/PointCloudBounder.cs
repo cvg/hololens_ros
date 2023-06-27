@@ -71,6 +71,9 @@ public class PointCloudBounder : MonoBehaviour
         ros.RegisterPublisher<PoseStampedMsg>(goal_pose_topic_beagle);
         ros.RegisterPublisher<PoseStampedMsg>(goal_pose_topic_poodle);
 
+        // Register publisher for /overlay_alignment_tr
+        ros.RegisterPublisher<TransformMsg>(overlay_alignment_tr);
+
         Drawing3dManagerGO = GameObject.Find("Drawing3dManager");
         meshRenderer = Drawing3dManagerGO.AddComponent<MeshRenderer>();
         meshRenderer.sharedMaterial = (Material)Resources.Load("Default Point", typeof(Material));
@@ -109,16 +112,10 @@ public class PointCloudBounder : MonoBehaviour
         ControllerMode();
     }
 
-    bool waitForPointCloud()
-    {
-
-        return true;
-    }
-
-    // Update is called once per frame
-    void Update() 
-    {
-    }
+    // bool waitForPointCloud()
+    // {
+    //     return true;
+    // }
 
     void OdometryCallbackBeagle(OdometryMsg msg) {
         if (first_odom_beagle) {
@@ -182,16 +179,15 @@ public class PointCloudBounder : MonoBehaviour
         // The actual yellow beagle and poodle will always track the odom messages
         beagleShadow.transform.localPosition = beagle.transform.localPosition;
         beagleShadow.transform.localRotation = beagle.transform.localRotation;
+        poodleShadow.transform.localPosition = poodle.transform.localPosition;
+        poodleShadow.transform.localRotation = poodle.transform.localRotation;
 
         // Set the shadows to be active
         beagleShadow.SetActive(true);
         poodleShadow.SetActive(true);
 
         // Make Drawing3dManagerGO smaller
-        Drawing3dManagerGO.transform.localScale = new Vector3(0.05f, 0.05f, 0.05f);
-        // Reset position of Drawing3dManagerGO
-        // Drawing3dManagerGO.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
-        // Drawing3dManagerGO.transform.rotation = Quaternion.identity;
+        Drawing3dManagerGO.transform.localScale = new Vector3(0.05f, 0.05f, 0.05f); // Don't need to set the position or rotation
 
         meshRenderer = Drawing3dManagerGO.GetComponent<MeshRenderer>();
         meshRenderer.sharedMaterial.SetFloat("_PointSize", 0.05f * Drawing3dManagerGO.transform.localScale[0]);
@@ -393,18 +389,16 @@ public class PointCloudBounder : MonoBehaviour
             position = position.Unity2Ros();
             rotation = rotation.Unity2Ros();
 
-            // Create a PoseStampedMsg
-            PoseStampedMsg msg = new PoseStampedMsg();
-            // Set the header of the msg
-            msg.header.frame_id = "map";
-            // Set the pose of the msg
-            msg.pose.position.x = position[0];
-            msg.pose.position.y = position[1];
-            msg.pose.position.z = position[2];
-            msg.pose.orientation.x = rotation[0];
-            msg.pose.orientation.y = rotation[1];
-            msg.pose.orientation.z = rotation[2];
-            msg.pose.orientation.w = rotation[3];
+            // Create a TransformMsg
+            TransformMsg msg = new TransformMsg();
+            // Set the translation and rotation of he msg
+            msg.translation.x = position[0];
+            msg.translation.y = position[1];
+            msg.translation.z = position[2];
+            msg.rotation.x = rotation[0];
+            msg.rotation.y = rotation[1];
+            msg.rotation.z = rotation[2];
+            msg.rotation.w = rotation[3];
 
             // Publish the msg
             ros.Send(overlay_alignment_tr, msg);
