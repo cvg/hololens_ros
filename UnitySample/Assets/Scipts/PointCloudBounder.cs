@@ -39,6 +39,8 @@ public class PointCloudBounder : MonoBehaviour
     string goal_pose_topic_beagle;
     string goal_pose_topic_poodle;
 
+    bool use_multi_floor;
+
     float shift_dog = -0.3f;
     bool first_odom_beagle = true;
     bool first_odom_poodle = true;
@@ -65,6 +67,9 @@ public class PointCloudBounder : MonoBehaviour
 
         // Set Overlay Alignment Transform publishing topic
         overlay_alignment_tr = configReader.overlay_alignment_tr;
+
+        // Flag for using multi-floor, the goal pose sent for ControllerMode will have free height
+        use_multi_floor = configReader.use_multi_floor;
 
         // Register publisher for /desired_pose
         ros = ROSConnection.GetOrCreateInstance();
@@ -118,7 +123,7 @@ public class PointCloudBounder : MonoBehaviour
     // }
 
     void OdometryCallbackBeagle(OdometryMsg msg) {
-        if (first_odom_beagle) {
+        if (first_odom_beagle) { // TODO: Check the first_odom_beagle for other things
             beagle.SetActive(true);
             first_odom_beagle = false;
         }
@@ -182,9 +187,13 @@ public class PointCloudBounder : MonoBehaviour
         poodleShadow.transform.localPosition = poodle.transform.localPosition;
         poodleShadow.transform.localRotation = poodle.transform.localRotation;
 
-        // Set the shadows to be active
-        beagleShadow.SetActive(true);
-        poodleShadow.SetActive(true);
+        // Set the shadows to be active only if odometry messages have been heard
+        if (!first_odom_beagle) { // Odometry message came in already
+            beagleShadow.SetActive(true);
+        }
+        if (!first_odom_poodle) {
+            poodleShadow.SetActive(true); // Odometry message came in already
+        }
 
         // Make Drawing3dManagerGO smaller
         Drawing3dManagerGO.transform.localScale = new Vector3(0.05f, 0.05f, 0.05f); // Don't need to set the position or rotation
@@ -198,15 +207,22 @@ public class PointCloudBounder : MonoBehaviour
         
         // Add a listener to the beagleObjManipulator, where if the beagleShadow is moved, the height is set to 0
         beagleObjManipulator.OnManipulationEnded.AddListener((eventData) => {
-            beagleShadow.transform.localPosition = new Vector3(beagleShadow.transform.localPosition.x, latest_odom_height_beagle, beagleShadow.transform.localPosition.z);
+            if (!use_multi_floor) {
+                beagleShadow.transform.localPosition = new Vector3(beagleShadow.transform.localPosition.x, latest_odom_height_beagle, beagleShadow.transform.localPosition.z);
+            } else {
+                // Do nothing to localPosition
+            }
             // set beagleShadow rotation as euler angles, but only around y-axis
-            // beagleShadow.transform.rotation = Quaternion.Euler(0.0f, beagleShadow.transform.rotation.eulerAngles[1], 0.0f);
             beagleShadow.transform.localRotation = Quaternion.Euler(0.0f, beagleShadow.transform.localRotation.eulerAngles[1], 0.0f);
 
             Vector3 position = beagleShadow.transform.localPosition;
             Quaternion rotation = beagleShadow.transform.localRotation;
 
-            beagleShadow.transform.localPosition = beagleShadow.transform.localPosition + new Vector3(0.0f, shift_dog, 0.0f);
+            if (!use_multi_floor) {
+                beagleShadow.transform.localPosition = beagleShadow.transform.localPosition + new Vector3(0.0f, shift_dog, 0.0f);
+            } else {
+                // Do nothing, the offset is already "included in user manipulation"
+            }
 
             position = position.Unity2Ros();
             rotation = rotation.Unity2Ros();
@@ -234,15 +250,22 @@ public class PointCloudBounder : MonoBehaviour
         
         // Add a listener to the poodleObjManipulator, where if the poodleShadow is moved, the height is set to 0
         poodleObjManipulator.OnManipulationEnded.AddListener((eventData) => {
-            poodleShadow.transform.localPosition = new Vector3(poodleShadow.transform.localPosition.x, latest_odom_height_poodle, poodleShadow.transform.localPosition.z);
+            if (!use_multi_floor) {
+                poodleShadow.transform.localPosition = new Vector3(poodleShadow.transform.localPosition.x, latest_odom_height_poodle, poodleShadow.transform.localPosition.z);
+            } else {
+                // Do nothing to the localPosition
+            }
             // set poodleShadow rotation as euler angles, but only around y-axis
-            // poodleShadow.transform.rotation = Quaternion.Euler(0.0f, poodleShadow.transform.rotation.eulerAngles[1], 0.0f);
             poodleShadow.transform.localRotation = Quaternion.Euler(0.0f, poodleShadow.transform.localRotation.eulerAngles[1], 0.0f);
 
             Vector3 position = poodleShadow.transform.localPosition;
             Quaternion rotation = poodleShadow.transform.localRotation;
 
-            poodleShadow.transform.localPosition = poodleShadow.transform.localPosition + new Vector3(0.0f, shift_dog, 0.0f);
+            if (!use_multi_floor) {
+                poodleShadow.transform.localPosition = poodleShadow.transform.localPosition + new Vector3(0.0f, shift_dog, 0.0f);
+            } else {
+                // Do nothing, the offset is already "included in user manipulation"
+            }
 
             position = position.Unity2Ros();
             rotation = rotation.Unity2Ros();
@@ -346,15 +369,19 @@ public class PointCloudBounder : MonoBehaviour
 
     public void InteractiveOverlayPointCloud()
     {
-        // Set shadows to inactive
-        beagleShadow.SetActive(false);
-        poodleShadow.SetActive(false);
+        // TODO: Check everything still works with other functionalities
+
+        controllerMode = false;
 
         // Interact with the overlay and publish the transform of Unity frame
         // Remove all the new components added from bounds, no shadow dog controller
         DestroyDrawing3dManagerComponents();
         DestroyBeagleShadowComponents();
         DestroyPoodleShadowComponents();
+
+        // Set shadows to inactive
+        beagleShadow.SetActive(false); // TODO: double check ghost behavior
+        poodleShadow.SetActive(false);
 
         // Reset scale of Drawing3dManagerGO
         Drawing3dManagerGO.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
@@ -369,16 +396,31 @@ public class PointCloudBounder : MonoBehaviour
             Debug.Log("Added overlay");
         }
 
+        Drawing3dManagerGO.AddComponent<BoxCollider>();
+        // TODO: try without bounds control!
+        if (boundsControl == null) {
+            boundsControl = Drawing3dManagerGO.AddComponent<BoundsControl>();
+        } else {
+            Destroy(boundsControl);
+            boundsControl = Drawing3dManagerGO.AddComponent<BoundsControl>();
+        }
+
         if (objManipulator == null) {
             objManipulator = Drawing3dManagerGO.AddComponent<ObjectManipulator>();
         } else {
             Destroy(objManipulator);
             objManipulator = Drawing3dManagerGO.AddComponent<ObjectManipulator>();
         }
-        objManipulator.AllowFarManipulation = true;
-        // Set Manipulation type to OneHanded
+        // objManipulator.AllowFarManipulation = true; // TODO: TRY?
+        // Set Manipulation type to OneHanded // TODO: Test if this actually works!!
         objManipulator.ManipulationType = ManipulationHandFlags.OneHanded;
         Drawing3dManagerGO.AddComponent<NearInteractionGrabbable>();
+
+        // Turn on smoothing
+        objManipulator.SmoothingNear = true;
+        objManipulator.SmoothingFar = true;
+        objManipulator.MoveLerpTime = 0.1f; // TODO: This value kind of works! But need to tune it.
+        objManipulator.RotateLerpTime = 0.1f;
 
         // Once finished moving the objManipulator, publish the transform of Drawing3dManagerGO
         objManipulator.OnManipulationEnded.AddListener((eventData) => {

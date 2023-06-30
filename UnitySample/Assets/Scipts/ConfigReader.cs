@@ -23,6 +23,7 @@ public class ConfigReader : MonoBehaviour
     public string goal_pose_topic_poodle = "/unity_move_base_simple/goal2";
 
     public string overlay_alignment_tr = "/overlay_alignment_tr";
+    public bool use_multi_floor = false;
 
     private ROSConnection ros;
 
@@ -48,6 +49,7 @@ public class ConfigReader : MonoBehaviour
         goal_pose_topic_beagle = json.goal_pose_topic_beagle;
         goal_pose_topic_poodle = json.goal_pose_topic_poodle;
         overlay_alignment_tr = json.overlay_alignment_tr;
+        use_multi_floor = json.use_multi_floor;
 
         Debug.Log(fileContent);
 #endif
@@ -72,4 +74,5 @@ public class ConfigFile
     public string goal_pose_topic_beagle { get; set; }
     public string goal_pose_topic_poodle { get; set; }
     public string overlay_alignment_tr { get; set; }
+    public bool use_multi_floor { get; set; }
 }
