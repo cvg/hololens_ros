@@ -16,11 +16,9 @@ public class ConfigReader : MonoBehaviour
 
     public string ip = "192.168.1.114";
     public int port = 9090;
-    public string robot_odom_topic_beagle = "/anymal/odom1";
-    public string robot_odom_topic_poodle = "/anymal/odom2";
+    public string[] robot_odom_topics = {"/anymal/odom1", "/anymal/odom2"};     // List of odom topics to subscribe to
     public string point_cloud_topic = "/transformed_point_cloud_topic";
-    public string goal_pose_topic_beagle = "/unity_move_base_simple/goal1";
-    public string goal_pose_topic_poodle = "/unity_move_base_simple/goal2";
+    public string[] goal_pose_topics = {"/unity_move_base_simple/goal1", "/unity_move_base_simple/goal2"};    // List of goal pose topics to publish to
 
     public string overlay_alignment_tr = "/overlay_alignment_tr";
     public bool use_multi_floor = false;
@@ -43,11 +41,9 @@ public class ConfigReader : MonoBehaviour
         ConfigFile json  = JsonConvert.DeserializeObject<ConfigFile>(fileContent);
         ip = json.ip;
         port = json.port;
-        robot_odom_topic_beagle = json.robot_odom_topic_beagle;
-        robot_odom_topic_poodle = json.robot_odom_topic_poodle;
+        robot_odom_topics = json.robot_odom_topics;
         point_cloud_topic = json.point_cloud_topic;
-        goal_pose_topic_beagle = json.goal_pose_topic_beagle;
-        goal_pose_topic_poodle = json.goal_pose_topic_poodle;
+        goal_pose_topics = json.goal_pose_topics;
         overlay_alignment_tr = json.overlay_alignment_tr;
         use_multi_floor = json.use_multi_floor;
 
@@ -68,11 +64,19 @@ public class ConfigFile
 {
     public string ip { get; set; }
     public int port { get; set; }
-    public string robot_odom_topic_beagle { get; set; }
-    public string robot_odom_topic_poodle { get; set; }
+
+    // List of odom topics to subscribe to
+    public string[] robot_odom_topics = { get; set };
+    // public string robot_odom_topic_beagle { get; set; }
+    // public string robot_odom_topic_poodle { get; set; }
+
     public string point_cloud_topic { get; set; }
-    public string goal_pose_topic_beagle { get; set; }
-    public string goal_pose_topic_poodle { get; set; }
+
+    // List of goal pose topics to publish to
+    public string[] goal_pose_topics = { get; set };
+    // public string goal_pose_topic_beagle { get; set; }
+    // public string goal_pose_topic_poodle { get; set; }
+    
     public string overlay_alignment_tr { get; set; }
     public bool use_multi_floor { get; set; }
 }
