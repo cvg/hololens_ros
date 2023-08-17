@@ -37,10 +37,6 @@ public class PointCloudBounder : MonoBehaviour
     string[] robot_odom_topics;
     string[] goal_pose_topics;
     int num_robots;
-    // string robot_odom_topic_beagle;
-    // string robot_odom_topic_poodle;
-    // string goal_pose_topic_beagle;
-    // string goal_pose_topic_poodle;
 
     bool use_multi_floor;
 
