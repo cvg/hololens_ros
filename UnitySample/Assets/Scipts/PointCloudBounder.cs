@@ -51,6 +51,11 @@ public class PointCloudBounder : MonoBehaviour
     public ConfigReader configReader;
     ROSConnection ros;
 
+    // TODO:
+    // - Generalize to N agents
+    // - Fix height offset
+    // - Change the odometry shadow to an arrow in controller mode
+
     // Start is called before the first frame update
     IEnumerator Start()
     {
@@ -138,10 +143,12 @@ public class PointCloudBounder : MonoBehaviour
         // Convert rotation from ROS to Unity
         rotation = rotation.Ros2Unity();
 
-        latest_odom_height_beagle = position[1];
+        // latest_odom_height_beagle = position[1];
 
-        // Shift the position down, scaled to local scale, usually because the user starts the app with the beagle in the air
+        // Shift the position down, scaled to local scale, because the origin of dog is at feet
         position = position + new Vector3(0.0f, shift_dog, 0.0f);
+
+        latest_odom_height_beagle = position[1];
         
         // Set local transform of beagle
         beagle.transform.localPosition = position;
@@ -164,10 +171,12 @@ public class PointCloudBounder : MonoBehaviour
         // Convert rotation from ROS to Unity
         rotation = rotation.Ros2Unity();
 
-        latest_odom_height_poodle = position[1];
+        // latest_odom_height_poodle = position[1];
 
         // Shift the position down, scaled to local scale, usually because the user starts the app with the beagle in the air
         position = position + new Vector3(0.0f, shift_dog, 0.0f);
+
+        latest_odom_height_poodle = position[1];
         
         // Set local transform of beagle
         poodle.transform.localPosition = position;
@@ -216,13 +225,8 @@ public class PointCloudBounder : MonoBehaviour
             beagleShadow.transform.localRotation = Quaternion.Euler(0.0f, beagleShadow.transform.localRotation.eulerAngles[1], 0.0f);
 
             Vector3 position = beagleShadow.transform.localPosition;
+            position = position - new Vector3(0.0f, shift_dog, 0.0f); // Shift the position back up before publishing
             Quaternion rotation = beagleShadow.transform.localRotation;
-
-            if (!use_multi_floor) {
-                beagleShadow.transform.localPosition = beagleShadow.transform.localPosition + new Vector3(0.0f, shift_dog, 0.0f);
-            } else {
-                // Do nothing, the offset is already "included in user manipulation"
-            }
 
             position = position.Unity2Ros();
             rotation = rotation.Unity2Ros();
@@ -259,13 +263,8 @@ public class PointCloudBounder : MonoBehaviour
             poodleShadow.transform.localRotation = Quaternion.Euler(0.0f, poodleShadow.transform.localRotation.eulerAngles[1], 0.0f);
 
             Vector3 position = poodleShadow.transform.localPosition;
+            position = position - new Vector3(0.0f, shift_dog, 0.0f); // Shift the position back up before publishing
             Quaternion rotation = poodleShadow.transform.localRotation;
-
-            if (!use_multi_floor) {
-                poodleShadow.transform.localPosition = poodleShadow.transform.localPosition + new Vector3(0.0f, shift_dog, 0.0f);
-            } else {
-                // Do nothing, the offset is already "included in user manipulation"
-            }
 
             position = position.Unity2Ros();
             rotation = rotation.Unity2Ros();
