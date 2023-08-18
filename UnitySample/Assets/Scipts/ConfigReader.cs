@@ -23,6 +23,8 @@ public class ConfigReader : MonoBehaviour
     public string overlay_alignment_tr = "/overlay_alignment_tr";
     public bool use_multi_floor = false;
 
+    public int num_anchors = 8;
+
     private ROSConnection ros;
 
     void Start()
@@ -46,6 +48,7 @@ public class ConfigReader : MonoBehaviour
         goal_pose_topics = json.goal_pose_topics;
         overlay_alignment_tr = json.overlay_alignment_tr;
         use_multi_floor = json.use_multi_floor;
+        num_anchors = json.num_anchors;
 
         Debug.Log(fileContent);
 #endif
@@ -79,4 +82,6 @@ public class ConfigFile
     
     public string overlay_alignment_tr { get; set; }
     public bool use_multi_floor { get; set; }
+
+    public int num_anchors { get; set; }
 }
