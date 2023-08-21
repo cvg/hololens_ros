@@ -66,14 +66,14 @@ public class ConfigFile
     public int port { get; set; }
 
     // List of odom topics to subscribe to
-    public string[] robot_odom_topics = { get; set };
+    public string[] robot_odom_topics { get; set; }
     // public string robot_odom_topic_beagle { get; set; }
     // public string robot_odom_topic_poodle { get; set; }
 
     public string point_cloud_topic { get; set; }
 
     // List of goal pose topics to publish to
-    public string[] goal_pose_topics = { get; set };
+    public string[] goal_pose_topics { get; set; }
     // public string goal_pose_topic_beagle { get; set; }
     // public string goal_pose_topic_poodle { get; set; }
     
