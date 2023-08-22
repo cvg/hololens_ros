@@ -93,10 +93,21 @@ public class PointCloudBounder : MonoBehaviour
             GameObject robot = GameObject.Instantiate(beagle);
             robot.name = robot_odom_topics[i]; // Temporary for now, will be changed to robot name
             robot.transform.parent = Drawing3dManagerGO.transform;
-
+            // Get Material of robot
+            Material robotMaterial = robot.GetComponent<MeshRenderer>().material;
+            robotMaterial.color = Color.HSVToRGB(Random.Range(0.0f, 1.0f), 1.0f, 1.0f);
+            // Also set all children to same color
+            foreach (Transform child in robot.transform) {
+                child.GetComponent<MeshRenderer>().material = robotMaterial;
+            }   
+            
+            // Clone the beagleShadow GameObject
             GameObject robotShadow = GameObject.Instantiate(beagleShadow);
             robotShadow.name = "shadow_" + robot_odom_topics[i]; // Temporary
             robotShadow.transform.parent = Drawing3dManagerGO.transform;
+            // Get Material of robotShadow
+            Material robotShadowMaterial = robotShadow.GetComponent<MeshRenderer>().material;
+            robotShadowMaterial.color = robotMaterial.color;
 
             robot.SetActive(false);
             robotShadow.SetActive(false);
