@@ -3033,7 +3033,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 27a6136d64696da4eba1b89b3df8d3df, type: 2}
+  - {fileID: 2100000, guid: a50237e3265fe9149a16e889fd8d8b4c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -8614,12 +8614,14 @@ MonoBehaviour:
   ip: 192.168.1.114
   port: 9091
   robot_odom_topics:
-  - /anymal/odom1
-  - /anymal/odom2
+  - /agent_1/odometry_in_map
+  - /agent_2/odometry_in_map
+  - /agent_3/odometry_in_map
   point_cloud_topic: /PCtoVisualize
   goal_pose_topics:
-  - /unity_move_base_simple/goal1
-  - /unity_move_base_simple/goal2
+  - /agent_1/unity_goal_pose
+  - /agent_2/unity_goal_pose
+  - /agent_3/unity_goal_pose
   overlay_alignment_tr: /overlay_alignment_tr
   use_multi_floor: 0
 --- !u!4 &1119771596

@@ -4,6 +4,7 @@ using Windows.Storage.Streams;
 #endif
 
 using System;
+using System.Collections.Generic;   
 using UnityEngine;
 using Newtonsoft.Json;
 
@@ -16,9 +17,9 @@ public class ConfigReader : MonoBehaviour
 
     public string ip = "192.168.1.114";
     public int port = 9090;
-    public string[] robot_odom_topics = {"/anymal/odom1", "/anymal/odom2"};     // List of odom topics to subscribe to
+    public List<string> robot_odom_topics = new List<string>();     // List of odom topics to subscribe to
     public string point_cloud_topic = "/transformed_point_cloud_topic";
-    public string[] goal_pose_topics = {"/unity_move_base_simple/goal1", "/unity_move_base_simple/goal2"};    // List of goal pose topics to publish to
+    public List<string> goal_pose_topics = new List<string>();    // List of goal pose topics to publish to
 
     public string overlay_alignment_tr = "/overlay_alignment_tr";
     public bool use_multi_floor = false;
@@ -66,14 +67,14 @@ public class ConfigFile
     public int port { get; set; }
 
     // List of odom topics to subscribe to
-    public string[] robot_odom_topics { get; set; }
+    public List<string> robot_odom_topics { get; set; }
     // public string robot_odom_topic_beagle { get; set; }
     // public string robot_odom_topic_poodle { get; set; }
 
     public string point_cloud_topic { get; set; }
 
     // List of goal pose topics to publish to
-    public string[] goal_pose_topics { get; set; }
+    public List<string> goal_pose_topics { get; set; }
     // public string goal_pose_topic_beagle { get; set; }
     // public string goal_pose_topic_poodle { get; set; }
     

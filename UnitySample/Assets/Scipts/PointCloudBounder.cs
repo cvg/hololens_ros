@@ -34,15 +34,15 @@ public class PointCloudBounder : MonoBehaviour
     bool controllerMode = false;
 
     string overlay_alignment_tr;
-    string[] robot_odom_topics;
-    string[] goal_pose_topics;
+    List<string> robot_odom_topics;
+    List<string> goal_pose_topics;
     int num_robots;
 
     bool use_multi_floor;
 
     float shift_dog = -0.3f;
     // Dictonary that maps robot_odom_topic to boolean
-    Dictionary<string, bool> first_odom = new Dictionary<string, bool>();
+    Dictionary<string, bool> first_odom_heard = new Dictionary<string, bool>();
     Dictionary<string, float> latest_odom_height = new Dictionary<string, float>();
 
     public ConfigReader configReader;
@@ -57,7 +57,7 @@ public class PointCloudBounder : MonoBehaviour
         // Set topics
         robot_odom_topics = configReader.robot_odom_topics; // Using the robot_odom topic name as the key for all the information currently
         goal_pose_topics = configReader.goal_pose_topics;
-        num_robots = robot_odom_topics.Length; // Should be same as goal_pose_topics length
+        num_robots = robot_odom_topics.Count;
 
         // Set Overlay Alignment Transform publishing topic
         overlay_alignment_tr = configReader.overlay_alignment_tr;
@@ -70,8 +70,8 @@ public class PointCloudBounder : MonoBehaviour
         for (int i = 0; i < num_robots; i++) {
             ros.RegisterPublisher<PoseStampedMsg>(goal_pose_topics[i]);
 
-            // Also set dictionary first_odom and height
-            first_odom.Add(robot_odom_topics[i], true);
+            // Also set dictionary first_odom_heard and height
+            first_odom_heard.Add(robot_odom_topics[i], false);
             latest_odom_height.Add(robot_odom_topics[i], 0.0f);
         }
 
@@ -103,14 +103,14 @@ public class PointCloudBounder : MonoBehaviour
             
             // Clone the beagleShadow GameObject
             GameObject robotShadow = GameObject.Instantiate(beagleShadow);
-            robotShadow.name = "shadow_" + robot_odom_topics[i]; // Temporary
+            robotShadow.name = robot_odom_topics[i] + "_SHADOW"; // Temporary
             robotShadow.transform.parent = Drawing3dManagerGO.transform;
             // Get Material of robotShadow
             Material robotShadowMaterial = robotShadow.GetComponent<MeshRenderer>().material;
             robotShadowMaterial.color = robotMaterial.color;
 
             robot.SetActive(false);
-            robotShadow.SetActive(false);
+            // robotShadow.SetActive(false);
 
             // Add to dictionaries
             robots[robot_odom_topics[i]] = robot;
@@ -125,22 +125,27 @@ public class PointCloudBounder : MonoBehaviour
         for (int i = 0; i < num_robots; i++) {
             if (!ros.HasSubscriber(robot_odom_topics[i]))
             {
-                System.Action<OdometryMsg> wrappedCallback = (msg) => OdometryCallback(msg, robot_odom_topics[i]);
-                ros.Subscribe<OdometryMsg>(robot_odom_topics[i], wrappedCallback);
+                string topic_name = robot_odom_topics[i];
+                // System.Action<OdometryMsg> wrappedCallback = (msg) => OdometryCallback(msg, robot_odom_topics[i]);
+                // ros.Subscribe<OdometryMsg>(robot_odom_topics[i], wrappedCallback);
+                ros.Subscribe<OdometryMsg>(robot_odom_topics[i], (msg) => OdometryCallback(msg, topic_name));
             }
         }
 
         // Logic to start in controller mode
-        yield return new WaitUntil(() => GameObject.Find("PointCloud") != null);
+        yield return new WaitUntil(() => GameObject.Find("PointCloud") != null); // TODO
         ControllerMode();
     }
 
     void OdometryCallback(OdometryMsg msg, string robot_odom_topic) {
+        // Debug print robot_odom_topic
+        Debug.Log("Received message from " + robot_odom_topic);
+
         GameObject currentRobot = robots[robot_odom_topic];
 
-        if (first_odom[robot_odom_topic]) {
+        if (!first_odom_heard[robot_odom_topic]) {
             currentRobot.SetActive(true);
-            first_odom[robot_odom_topic] = false;
+            first_odom_heard[robot_odom_topic] = true;
         }
 
         // Extract xyz pose information from msg
@@ -174,23 +179,27 @@ public class PointCloudBounder : MonoBehaviour
             GameObject robot = robots[robot_odom_topics[i]];
             GameObject robotShadow = robot_shadows[robot_odom_topics[i]];
 
+            if (first_odom_heard[robot_odom_topics[i]]) { // Odometry message came in already // TODO
+                robotShadow.SetActive(true);
+            } else { // Odometry message has not come in yet, exit for loop
+                break;
+            }
+
             // Set the position of the shadows to be the last known position of the robots
             // The actual robots will always track the positions
             robotShadow.transform.localPosition = robot.transform.localPosition;
             robotShadow.transform.localRotation = robot.transform.localRotation;
 
-            if (!first_odom[robot_odom_topics[i]]) { // Odometry message came in already
-                robotShadow.SetActive(true);
-            }
-
             // Add manipulation components to shadows, near interaction grabbable
+            Debug.Log("Adding robot manipulator");
             ObjectManipulator objManipulator = robotShadow.AddComponent<ObjectManipulator>();
             robotShadow.AddComponent<NearInteractionGrabbable>();
 
-            // Add a listener to the beagleObjManipulator, where if the robotShadow is moved, the height is set to 0
+            int index = i; // Need to do this because of the lambda function
+            // Add a listener to the robotShadow objManipulator on position changed
             objManipulator.OnManipulationEnded.AddListener((eventData) => {
                 if (!use_multi_floor) {
-                    robotShadow.transform.localPosition = new Vector3(robotShadow.transform.localPosition.x, latest_odom_height[robot_odom_topics[i]], robotShadow.transform.localPosition.z);
+                    robotShadow.transform.localPosition = new Vector3(robotShadow.transform.localPosition.x, latest_odom_height[robot_odom_topics[index]], robotShadow.transform.localPosition.z);
                 } else {
                     // Do nothing to localPosition
                 }
@@ -223,7 +232,7 @@ public class PointCloudBounder : MonoBehaviour
                 msg.pose.orientation.w = rotation[3];
 
                 // Publish the msg
-                ros.Send(goal_pose_topics[i], msg);
+                ros.Send(goal_pose_topics[index], msg);
             });
         }
 
