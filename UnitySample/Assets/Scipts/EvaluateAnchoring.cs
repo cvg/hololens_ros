@@ -29,7 +29,6 @@ public class EvaluateAnchoring : MonoBehaviour
     public ConfigReader configReader;
     ROSConnection ros;
 
-
     IEnumerator Start() {
         yield return new WaitUntil(() => configReader.FinishedReader);   
 
@@ -81,6 +80,7 @@ public class EvaluateAnchoring : MonoBehaviour
         if (real_anchors[0].activeSelf) {
             // If anchors are already visible, delete manipulation handlers and hide
             for (int i = 0; i < num_anchors; i++) {
+                // TODO: Might have to add other interactables
                 Destroy(real_anchors[i].GetComponent<ManipulationHandler>());
                 Destroy(hl_anchors[i].GetComponent<ManipulationHandler>());
 
@@ -103,7 +103,7 @@ public class EvaluateAnchoring : MonoBehaviour
     public void ConfirmAlignment() {
         // Get poses of all anchors and put into PoseArray message
         PoseArrayMsg poseArrayMsg = new PoseArrayMsg();
-        poseArrayMsg.header.frame_id = "map";
+        poseArrayMsg.header.frame_id = "map"; // TODO: Is this supposed to be "map" or "unity"?
         poseArrayMsg.poses = new PoseMsg[num_anchors * 2];
 
         // Get poses of all anchors
