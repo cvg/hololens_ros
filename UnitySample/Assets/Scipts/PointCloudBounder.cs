@@ -180,10 +180,27 @@ public class PointCloudBounder : MonoBehaviour
             GameObject robotShadow = robot_shadows[robot_odom_topics[i]];
 
             if (first_odom_heard[robot_odom_topics[i]]) { // Odometry message came in already // TODO
+                // Change color of the robot depending on robot_odom_topics[i]
+                Color color = Color.HSVToRGB(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f));
+                if (robot_odom_topics[i] == "/agent_1/odometry_in_map")
+                    color = new Color(1.0f, 0.0f, 0.0f);
+                else if (robot_odom_topics[i] == "/agent_2/odometry_in_map")
+                    color = new Color(0.0f, 1.0f, 0.0f);
+                else if (robot_odom_topics[i] == "/agent_3/odometry_in_map")
+                    color = new Color(0.0f, 0.0f, 1.0f);
+                Material robotMaterial = robot.GetComponent<MeshRenderer>().material;
+                Material robotShadowMaterial = robotShadow.GetComponent<MeshRenderer>().material;
+                robotMaterial.color = color;
+                robotShadowMaterial.color = color;
                 robotShadow.SetActive(true);
-            } else { // Odometry message has not come in yet, exit for loop
+            } else { // Odometry message has not come in yet, exit for 
+                // Reset visuals and exit
+                robot.SetActive(false);
+                robotShadow.SetActive(false);
                 break;
             }
+
+            // robotShadow.SetActive(true); // TODO: moved this out of the loop for now
 
             // Set the position of the shadows to be the last known position of the robots
             // The actual robots will always track the positions
@@ -193,7 +210,11 @@ public class PointCloudBounder : MonoBehaviour
             // Add manipulation components to shadows, near interaction grabbable
             Debug.Log("Adding robot manipulator");
             ObjectManipulator objManipulator = robotShadow.AddComponent<ObjectManipulator>();
-            robotShadow.AddComponent<NearInteractionGrabbable>();
+            NearInteractionGrabbable nearIntGrab = robotShadow.AddComponent<NearInteractionGrabbable>();
+
+            // Make sure sizes of near interaction grabbable and object manipulator are as small as mesh
+            // objManipulator.ScaleHandleSize = 0.05f;
+            // nearIntGrab.ScaleHandleSize = 0.05f;
 
             int index = i; // Need to do this because of the lambda function
             // Add a listener to the robotShadow objManipulator on position changed
@@ -209,11 +230,17 @@ public class PointCloudBounder : MonoBehaviour
                 Vector3 position = robotShadow.transform.localPosition;
                 Quaternion rotation = robotShadow.transform.localRotation;
 
+                // Shift the position down, scaled to local scale, usually because the user starts the app with the robot in the air
+                // position = position - new Vector3(0.0f, shift_dog, 0.0f);
+
                 if (!use_multi_floor) {
                     robotShadow.transform.localPosition = robotShadow.transform.localPosition + new Vector3(0.0f, shift_dog, 0.0f);
                 } else {
                     // Do nothing, the offset is already "included in user manipulation"
                 }
+
+                // shift_dog
+                position = position - new Vector3(0.0f, shift_dog, 0.0f);
 
                 position = position.Unity2Ros();
                 rotation = rotation.Unity2Ros();

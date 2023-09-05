@@ -35,7 +35,7 @@ public class ConfigReader : MonoBehaviour
     {
 #if ENABLE_WINMD_SUPPORT
         Debug.Log("Getting the file");
-        StorageFile file = await StorageFile.GetFileFromPathAsync("U:\\Users\\chenj\\Pictures\\ipsecond.txt"); // Need to make this path not dependent on username
+        StorageFile file = await StorageFile.GetFileFromPathAsync("U:\\Users\\cvg-h\\Pictures\\ipsecond.txt"); // Need to make this path not dependent on username
         Debug.Log("Getting the Random Access Stream");
         IRandomAccessStream stream = await file.OpenAsync(0);
         string fileContent = await FileIO.ReadTextAsync(file);
