@@ -2,7 +2,7 @@
 
 [[arxiv](https://arxiv.org/abs/2310.02392)] [[youtube](https://www.youtube.com/watch?v=H3IA5FXnFX8)]
 
-<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/H3IA5FXnFX8?si=EhYMZsKOROOBdb4-" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/H3IA5FXnFX8/0.jpg)](https://www.youtube.com/watch?v=H3IA5FXnFX8)
 
 A modified App based on based on [HoloLens2ForCV](https://github.com/microsoft/HoloLens2ForCV) and [UnityRoboticsHub](https://github.com/Unity-Technologies/Unity-Robotics-Hub).
 
