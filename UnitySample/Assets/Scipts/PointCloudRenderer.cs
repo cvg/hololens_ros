@@ -31,14 +31,23 @@ public class PointCloudRenderer : MonoBehaviour
         VisualizationTopicsTab vistab = visTopicsTabGameObject.GetComponent<VisualizationTopicsTab>();
 
         string PCTopic = configReader.point_cloud_topic;
+        string MeshTopic = configReader.mesh_topic;
         Debug.Log("Setting up subscriber for pc " + PCTopic);
+        Debug.Log("Setting up subscriber for mesh " + MeshTopic);
 
         // Add new topic for /PCtoVisualize
         RosTopicState state = ros.GetOrCreateTopic(PCTopic, "sensor_msgs/PointCloud2", false);
         vistab.OnNewTopicPublic(state);
 
+        // Add new topic for /MeshToVisualize
+        RosTopicState state_mesh = ros.GetOrCreateTopic(MeshTopic, "visualization_msgs/Marker", false);
+        vistab.OnNewTopicPublic(state_mesh);
+
         VisualizationTopicsTabEntry vis;
         vis = vistab.getVisTab(PCTopic);
+
+        VisualizationTopicsTabEntry vis_mesh;
+        vis_mesh = vistab.getVisTab(MeshTopic);
 
         if (vis == null)
         {
@@ -46,10 +55,21 @@ public class PointCloudRenderer : MonoBehaviour
             yield break;
         }
 
+        if (vis_mesh == null)
+        {
+            Debug.LogError("VisualizationTopicsTabEntry not found for " + MeshTopic);
+            yield break;
+        }
+
         Debug.Log(vis.GetVisualFactory().GetType());
+        Debug.Log(vis_mesh.GetVisualFactory().GetType());
 
         PointCloud2DefaultVisualizer visFactory = (PointCloud2DefaultVisualizer)(vis.GetVisualFactory());
         ((PointCloud2DefaultVisualizer)visFactory).GetOrCreateVisual(PCTopic).SetDrawingEnabled(true);
         Debug.Log("VisualizationTopicsTab connected to" + ros.RosIPAddress + " " + ros.RosPort);       
+
+        MarkerDefaultVisualizer visFactory_mesh = (MarkerDefaultVisualizer)(vis_mesh.GetVisualFactory());
+        ((MarkerDefaultVisualizer)visFactory_mesh).GetOrCreateVisual(MeshTopic).SetDrawingEnabled(true);
+        Debug.Log("VisualizationTopicsTab connected to" + ros.RosIPAddress + " " + ros.RosPort);
     }
 }

@@ -238,6 +238,14 @@ public class ResearchModeVideoStream : MonoBehaviour
 #endif
     }
 
+    long getTicksSince1970(long ts)
+    {
+        // ts is ticks since 0001
+        // 62135596800 0000000 is ticks between 0001 and 1970 (seconds between is 62135596800 )
+        long offset = (long)621355968000000000;
+        return ts - offset;
+    }
+
     bool startRealtimePreview = true;
     void LateUpdate()
     {
@@ -366,9 +374,16 @@ public class ResearchModeVideoStream : MonoBehaviour
                     "DepthMap"
                 );
 
-                header.stamp.sec = (uint)(ts/TimeSpan.TicksPerSecond); // Just the number of seconds
-                header.stamp.nanosec = (uint)( (ts) - (header.stamp.sec*TimeSpan.TicksPerSecond) ) * 100; // Number of ns with the seconds subtracted
-
+                // JULIA: I'm assuming ticks is hundreds of nanoseconds
+                // get nanoseconds since last second
+                header.stamp.nanosec = (uint) (ts % TimeSpan.TicksPerSecond) * 100;
+                ulong seconds = (ulong) (ts / TimeSpan.TicksPerSecond);
+                ulong secondsSince1970 = seconds - 62135596800 ; // 62135596800  is the number of seconds between 0001 and 1970
+                header.stamp.sec = (uint) secondsSince1970;
+                // long ticksSinceLinux = getTicksSince1970(ts); // praying that this fits in a uint                
+                // header.stamp.sec = (uint)(ticksSinceLinux/TimeSpan.TicksPerSecond); // Just the number of seconds
+                // header.stamp.nanosec = (uint)( (ticksSinceLinux) - (header.stamp.sec*TimeSpan.TicksPerSecond) ) * 100; // Number of ns with the seconds subtracted
+                
                 // JULIA: add passing byte[] frameTexture to a ROS message
                 ImageMsg imageMsg = new ImageMsg(
                     header,
@@ -518,10 +533,16 @@ public class ResearchModeVideoStream : MonoBehaviour
                     new TimeMsg(),
                     "DepthMap"
                 );
+                // get nanoseconds since last second
+                header.stamp.nanosec = (uint) (ts % TimeSpan.TicksPerSecond) * 100;
+                ulong seconds = (ulong) (ts / TimeSpan.TicksPerSecond);
+                ulong secondsSince1970 = seconds - 62135596800 ; // 62135596800  is the number of seconds between 0001 and 1970
+                header.stamp.sec = (uint) secondsSince1970;
 
-                header.stamp.sec = (uint)(ts/TimeSpan.TicksPerSecond); // Just the number of seconds
-                // header.stamp.sec = (uint)(ts); // Just the number of hundredsofnanoseconds
-                header.stamp.nanosec = (uint)( (ts) - (header.stamp.sec*TimeSpan.TicksPerSecond) ) * 100; // Number of ns with the seconds subtracted
+                // // JULIA: I'm assuming ticks is hundreds of nanoseconds
+                // long ticksSinceLinux = getTicksSince1970(ts);                
+                // header.stamp.sec = (uint)(ticksSinceLinux/TimeSpan.TicksPerSecond); // Just the number of seconds
+                // header.stamp.nanosec = (uint)( (ticksSinceLinux) - (header.stamp.sec*TimeSpan.TicksPerSecond) ) * 100; // Number of ns with the seconds subtracted
 
                 // JULIA: add passing byte[] frameTexture to a ROS message
                 ImageMsg imageMsg = new ImageMsg(
@@ -607,10 +628,18 @@ public class ResearchModeVideoStream : MonoBehaviour
                     new TimeMsg(),
                     "DepthMap"
                 );
-                // JJULIA: what is ts here
-                header.stamp.sec = (uint)(ts/TimeSpan.TicksPerSecond); // Just the number of seconds
-                // header.stamp.sec = (uint)(ts); // Just the number of hundredsofnanoseconds
-                header.stamp.nanosec = (uint)( (ts) - (header.stamp.sec*TimeSpan.TicksPerSecond) ) * 100; // Number of ns with the seconds subtracted
+
+                // get nanoseconds since last second
+                header.stamp.nanosec = (uint) (ts % TimeSpan.TicksPerSecond) * 100;
+                ulong seconds = (ulong) (ts / TimeSpan.TicksPerSecond);
+                ulong secondsSince1970 = seconds -   62135596800 ; // 62135596800  is the number of seconds between 0001 and 1970
+                // secondsSince1970 = secondsSince1970 - 1016948351; // magic number found by trial and error 62167132800+1016948351=63184081151
+                header.stamp.sec = (uint) secondsSince1970;
+
+                // // JULIA: I'm assuming ticks is hundreds of nanoseconds
+                // long ticksSinceLinux = getTicksSince1970(ts);                
+                // header.stamp.sec = (uint)(ticksSinceLinux/TimeSpan.TicksPerSecond); // Just the number of seconds
+                // header.stamp.nanosec = (uint)( (ticksSinceLinux) - (header.stamp.sec*TimeSpan.TicksPerSecond) ) * 100; // Number of ns with the seconds subtracted
 
 
                 PointFieldMsg[] pfMsg = new PointFieldMsg[3];

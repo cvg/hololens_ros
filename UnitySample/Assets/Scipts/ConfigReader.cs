@@ -19,6 +19,7 @@ public class ConfigReader : MonoBehaviour
     public int port = 9090;
     public List<string> robot_odom_topics = new List<string>();     // List of odom topics to subscribe to
     public string point_cloud_topic = "/transformed_point_cloud_topic";
+    public string mesh_topic = "/voxblox_mesh_publisher/mesh_marker";
     public List<string> goal_pose_topics = new List<string>();    // List of goal pose topics to publish to
 
     public string overlay_alignment_tr = "/overlay_alignment_tr";
@@ -35,7 +36,8 @@ public class ConfigReader : MonoBehaviour
     {
 #if ENABLE_WINMD_SUPPORT
         Debug.Log("Getting the file");
-        StorageFile file = await StorageFile.GetFileFromPathAsync("U:\\Users\\cvg-h\\Pictures\\ipsecond.txt"); // Need to make this path not dependent on username
+        // StorageFile file = await StorageFile.GetFileFromPathAsync("U:\\Users\\cvg-h\\Pictures\\ipsecond.txt"); // Need to make this path not dependent on username
+        StorageFile file = await StorageFile.GetFileFromPathAsync("U:\\Users\\chenj\\Pictures\\ipsecond.txt"); // Need to make this path not dependent on username
         Debug.Log("Getting the Random Access Stream");
         IRandomAccessStream stream = await file.OpenAsync(0);
         string fileContent = await FileIO.ReadTextAsync(file);
@@ -47,6 +49,7 @@ public class ConfigReader : MonoBehaviour
         goal_pose_topics = json.goal_pose_topics;
         overlay_alignment_tr = json.overlay_alignment_tr;
         use_multi_floor = json.use_multi_floor;
+        mesh_topic = json.mesh_topic;
 
         Debug.Log(fileContent);
 #endif
@@ -72,6 +75,8 @@ public class ConfigFile
     // public string robot_odom_topic_poodle { get; set; }
 
     public string point_cloud_topic { get; set; }
+
+    public string mesh_topic { get; set; }
 
     // List of goal pose topics to publish to
     public List<string> goal_pose_topics { get; set; }

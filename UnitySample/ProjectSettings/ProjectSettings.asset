@@ -336,6 +336,18 @@ PlayerSettings:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -822,11 +834,11 @@ PlayerSettings:
   m_MobileRenderingPath: 1
   metroPackageName: Template3D
   metroPackageVersion: 1.0.0.0
-  metroCertificatePath: Assets\WSATestCertificate.pfx
+  metroCertificatePath: Assets/WSATestCertificate.pfx
   metroCertificatePassword: 
-  metroCertificateSubject: Wenhao
-  metroCertificateIssuer: Wenhao
-  metroCertificateNotAfter: 80b94c6a0d0dda01
+  metroCertificateSubject: Julia
+  metroCertificateIssuer: Julia
+  metroCertificateNotAfter: 80b980a98930db01
   metroApplicationDescription: Template_3D
   wsaImages: {}
   metroTileShortName: HL2ResearchModeUnitySample
