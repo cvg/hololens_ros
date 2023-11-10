@@ -125,10 +125,12 @@ public class ResearchModeVideoStream : MonoBehaviour
             Debug.Log("VideoStreamer is connecting to " + ros.RosIPAddress);
             Debug.Log("VideoStreamer Port " + ros.RosPort);
 
-            ros.RegisterPublisher<ImageMsg>(LFImageTopicName);
+            if (configReader.use_LF)
+                ros.RegisterPublisher<ImageMsg>(LFImageTopicName);
             // ros.RegisterPublisher<ImageMsg>(RFImageTopicName);
             // ros.RegisterPublisher<ImageMsg>(LLImageTopicName);
-            ros.RegisterPublisher<ImageMsg>(RRImageTopicName);
+            if (configReader.use_RR)
+                ros.RegisterPublisher<ImageMsg>(RRImageTopicName);
             ros.RegisterPublisher<PointCloud2Msg>(DepthTopicName);
 
             Debug.Log("Registered Image Publishers");
@@ -175,7 +177,7 @@ public class ResearchModeVideoStream : MonoBehaviour
         }
         
 
-        if (LFPreviewPlane != null)
+        if (LFPreviewPlane != null && configReader.use_LF)
         {
             LFMediaMaterial = LFPreviewPlane.GetComponent<MeshRenderer>().material;
             LFMediaTexture = new Texture2D(640, 480, TextureFormat.Alpha8, false);
@@ -196,7 +198,7 @@ public class ResearchModeVideoStream : MonoBehaviour
         //     LLMediaMaterial.mainTexture = LLMediaTexture;
         // }
 
-        if (RRPreviewPlane != null)
+        if (RRPreviewPlane != null && configReader.use_RR)
         {
             RRMediaMaterial = RRPreviewPlane.GetComponent<MeshRenderer>().material;
             RRMediaTexture = new Texture2D(640, 480, TextureFormat.Alpha8, false);
@@ -341,7 +343,7 @@ public class ResearchModeVideoStream : MonoBehaviour
         }
 
         // update LF camera texture
-        if (researchMode.LFImageUpdated() && publishingImages)
+        if (researchMode.LFImageUpdated() && publishingImages && configReader.use_LF)
         {
             long ts;
             byte[] frameTexture = researchMode.GetLFCameraBuffer(out ts);
@@ -499,7 +501,7 @@ public class ResearchModeVideoStream : MonoBehaviour
         // }
 
         // update RR camera texture
-        if (researchMode.RRImageUpdated() && publishingImages)
+        if (researchMode.RRImageUpdated() && publishingImages && configReader.use_RR)
         {
             long ts; // Should already be hundreds of nanoseconds
             byte[] frameTexture = researchMode.GetRRCameraBuffer(out ts);

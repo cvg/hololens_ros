@@ -133,8 +133,8 @@ public class PointCloudBounder : MonoBehaviour
         }
 
         // wait 5 sec
-        yield return new WaitForSeconds(5);
-        BoundPointCloud();
+        // yield return new WaitForSeconds(5);
+        // BoundPointCloud();
         // Logic to start in controller mode
         // yield return new WaitUntil(() => GameObject.Find("PointCloud") != null); // TODO
         // ControllerMode();

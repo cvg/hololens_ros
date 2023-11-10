@@ -2294,7 +2294,7 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1 &381946485
+--- !u!1 &404720988
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2302,28 +2302,42 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 381946486}
+  - component: {fileID: 404720990}
+  - component: {fileID: 404720989}
   m_Layer: 0
-  m_Name: MarkerVisualizationSuite
+  m_Name: PCRenderer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &381946486
+--- !u!114 &404720989
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 404720988}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b5029f5d0d1a754f8a40677a100352f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  visTopicsTabGameObject: {fileID: 0}
+  configReader: {fileID: 0}
+--- !u!4 &404720990
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 381946485}
+  m_GameObject: {fileID: 404720988}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0.004230715, y: -0.007874176, z: 0.023573793}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children:
-  - {fileID: 750012044}
+  m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 17
+  m_RootOrder: 16
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &433494238
 GameObject:
@@ -4532,7 +4546,7 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
-    m_TransformParent: {fileID: 381946486}
+    m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1254466727312584069, guid: 8968dd66bff86df47bc992562d7a9082,
         type: 3}
@@ -4542,12 +4556,12 @@ PrefabInstance:
     - target: {fileID: 3885009520023495737, guid: 8968dd66bff86df47bc992562d7a9082,
         type: 3}
       propertyPath: m_Name
-      value: EmptyVisualizationSuite
+      value: MarkerVisualizationSuite
       objectReference: {fileID: 0}
     - target: {fileID: 3885009520023495739, guid: 8968dd66bff86df47bc992562d7a9082,
         type: 3}
       propertyPath: m_RootOrder
-      value: 0
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 3885009520023495739, guid: 8968dd66bff86df47bc992562d7a9082,
         type: 3}
@@ -4572,17 +4586,17 @@ PrefabInstance:
     - target: {fileID: 3885009520023495739, guid: 8968dd66bff86df47bc992562d7a9082,
         type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 3885009520023495739, guid: 8968dd66bff86df47bc992562d7a9082,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 3885009520023495739, guid: 8968dd66bff86df47bc992562d7a9082,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 3885009520023495739, guid: 8968dd66bff86df47bc992562d7a9082,
         type: 3}
@@ -4606,12 +4620,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8968dd66bff86df47bc992562d7a9082, type: 3}
---- !u!4 &750012044 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 3885009520023495739, guid: 8968dd66bff86df47bc992562d7a9082,
-    type: 3}
-  m_PrefabInstance: {fileID: 750012043}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &750012045 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3885009520023495737, guid: 8968dd66bff86df47bc992562d7a9082,
@@ -4630,7 +4638,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90600d3790e079d49997a5f9f09d01d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Topic: /voxblox_mesh_publisher/mesh_marker
+  m_Topic: 
   m_ID: 750012046-0
 --- !u!1 &752144242
 GameObject:
@@ -8747,14 +8755,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   FinishedReader: 0
-  ip: 172.22.208.1
+  ip: 192.168.1.179
   port: 9091
   robot_odom_topics:
   - /agent_1/odometry_in_map
   - /agent_2/odometry_in_map
   - /agent_3/odometry_in_map
   point_cloud_topic: /transformed_point_cloud_topic
-  mesh_topic: /voxblox_mesh_publisher/mesh_marker
+  mesh_topic: /voxblox_mesh_publisher/mesh_marker_unity
   goal_pose_topics:
   - /agent_1/unity_goal_pose
   - /agent_2/unity_goal_pose
@@ -10287,9 +10295,9 @@ MonoBehaviour:
   OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1211074201}
-        m_TargetAssemblyTypeName: PointCloudBounder, Assembly-CSharp
-        m_MethodName: InteractiveOverlayPointCloud
+      - m_Target: {fileID: 404720989}
+        m_TargetAssemblyTypeName: PointCloudRenderer, Assembly-CSharp
+        m_MethodName: AddSubscriberToMesh
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -12590,7 +12598,7 @@ Transform:
   m_Children:
   - {fileID: 665306815}
   m_Father: {fileID: 0}
-  m_RootOrder: 16
+  m_RootOrder: 17
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1750704533
 PrefabInstance:
@@ -15480,7 +15488,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &2131090947
 MonoBehaviour:
   m_ObjectHideFlags: 0
