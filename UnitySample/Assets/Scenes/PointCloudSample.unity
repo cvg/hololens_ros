@@ -2323,8 +2323,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b5029f5d0d1a754f8a40677a100352f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  visTopicsTabGameObject: {fileID: 0}
-  configReader: {fileID: 0}
+  visTopicsTabGameObject: {fileID: 750012045}
+  configReader: {fileID: 1119771595}
 --- !u!4 &404720990
 Transform:
   m_ObjectHideFlags: 0
@@ -8755,20 +8755,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   FinishedReader: 0
-  ip: 192.168.1.179
+  ip: 192.168.50.114
   port: 9091
   robot_odom_topics:
   - /agent_1/odometry_in_map
   - /agent_2/odometry_in_map
   - /agent_3/odometry_in_map
   point_cloud_topic: /transformed_point_cloud_topic
-  mesh_topic: /voxblox_mesh_publisher/mesh_marker_unity
+  mesh_topic: /voxblox_mesh_publisher/mesh_marker
   goal_pose_topics:
   - /agent_1/unity_goal_pose
   - /agent_2/unity_goal_pose
   - /agent_3/unity_goal_pose
   overlay_alignment_tr: /overlay_alignment_tr
   use_multi_floor: 0
+  use_LF: 1
+  use_RR: 0
 --- !u!4 &1119771596
 Transform:
   m_ObjectHideFlags: 0
@@ -9809,7 +9811,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1404162257
 MonoBehaviour:
   m_ObjectHideFlags: 0

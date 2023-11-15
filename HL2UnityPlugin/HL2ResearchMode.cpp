@@ -451,7 +451,9 @@ namespace winrt::HL2UnityPlugin::implementation
                 {
                     auto ts = PerceptionTimestampHelper::FromSystemRelativeTargetTime(HundredsOfNanoseconds(checkAndConvertUnsigned(timestamp.HostTicks)));
                     // JULIA: set the timestamp of the longThrowPointCloud
-                    pHL2ResearchMode->m_lastLongThrowPointCloudTimestamp = ts.TargetTime().time_since_epoch().count(); // Getting FileTime
+                    pHL2ResearchMode->m_lastLongThrowPointCloudTimestamp = ts.TargetTime().time_since_epoch().count() - 116444736000000000; // Getting FileTime
+                    // pHL2ResearchMode->m_lastLongThrowPointCloudTimestamp = ts.TargetTime().Ticks - ts.TargetTime().UnixEpoch.Ticks; // JULIA: setting ts to unix time
+                                                                    // ^ should be the number of ticks (100 nanoseconds) since unix epoch
                     transToWorld = pHL2ResearchMode->m_locator.TryLocateAtTimestamp(ts, pHL2ResearchMode->m_refFrame);
                     if (transToWorld == nullptr) continue;
                 }
@@ -709,10 +711,10 @@ namespace winrt::HL2UnityPlugin::implementation
                 pLLCameraFrame->GetTimeStamp(&timestamp_leftleft);
                 pRRCameraFrame->GetTimeStamp(&timestamp_rightright);
 
-                auto ts_left = PerceptionTimestampHelper::FromSystemRelativeTargetTime(HundredsOfNanoseconds(checkAndConvertUnsigned(timestamp_left.HostTicks)));
-                auto ts_right = PerceptionTimestampHelper::FromSystemRelativeTargetTime(HundredsOfNanoseconds(checkAndConvertUnsigned(timestamp_right.HostTicks)));
-                auto ts_leftleft = PerceptionTimestampHelper::FromSystemRelativeTargetTime(HundredsOfNanoseconds(checkAndConvertUnsigned(timestamp_leftleft.HostTicks)));
-                auto ts_rightright = PerceptionTimestampHelper::FromSystemRelativeTargetTime(HundredsOfNanoseconds(checkAndConvertUnsigned(timestamp_rightright.HostTicks)));
+                auto ts_left = (PerceptionTimestamp)PerceptionTimestampHelper::FromSystemRelativeTargetTime(HundredsOfNanoseconds(checkAndConvertUnsigned(timestamp_left.HostTicks)));
+                auto ts_right = (PerceptionTimestamp)PerceptionTimestampHelper::FromSystemRelativeTargetTime(HundredsOfNanoseconds(checkAndConvertUnsigned(timestamp_right.HostTicks)));
+                auto ts_leftleft = (PerceptionTimestamp)PerceptionTimestampHelper::FromSystemRelativeTargetTime(HundredsOfNanoseconds(checkAndConvertUnsigned(timestamp_leftleft.HostTicks)));
+                auto ts_rightright = (PerceptionTimestamp)PerceptionTimestampHelper::FromSystemRelativeTargetTime(HundredsOfNanoseconds(checkAndConvertUnsigned(timestamp_rightright.HostTicks)));
                 
                 // uncomment the block below if their transform is needed
                 auto rigToWorld_l = pHL2ResearchMode->m_locator.TryLocateAtTimestamp(ts_left, pHL2ResearchMode->m_refFrame);
@@ -753,11 +755,16 @@ namespace winrt::HL2UnityPlugin::implementation
                     pHL2ResearchMode->m_lastSpatialFrame.LLFrame.timestamp = timestamp_leftleft.HostTicks;
                     pHL2ResearchMode->m_lastSpatialFrame.RRFrame.timestamp = timestamp_rightright.HostTicks;
 
-                    pHL2ResearchMode->m_lastSpatialFrame.LFFrame.timestamp_ft = ts_left.TargetTime().time_since_epoch().count();
-                    pHL2ResearchMode->m_lastSpatialFrame.RFFrame.timestamp_ft = ts_right.TargetTime().time_since_epoch().count();
-                    pHL2ResearchMode->m_lastSpatialFrame.LLFrame.timestamp_ft = ts_leftleft.TargetTime().time_since_epoch().count();
-                    pHL2ResearchMode->m_lastSpatialFrame.RRFrame.timestamp_ft = ts_rightright.TargetTime().time_since_epoch().count();
+                    // pHL2ResearchMode->m_lastSpatialFrame.LFFrame.timestamp_ft = ts_left.TargetTime().time_since_epoch().count();
+                    // pHL2ResearchMode->m_lastSpatialFrame.RFFrame.timestamp_ft = ts_right.TargetTime().time_since_epoch().count();
+                    // pHL2ResearchMode->m_lastSpatialFrame.LLFrame.timestamp_ft = ts_leftleft.TargetTime().time_since_epoch().count();
+                    // pHL2ResearchMode->m_lastSpatialFrame.RRFrame.timestamp_ft = ts_rightright.TargetTime().time_since_epoch().count();
 
+                    pHL2ResearchMode->m_lastSpatialFrame.LFFrame.timestamp_ft = ts_left.TargetTime().time_since_epoch().count() - 116444736000000000;
+                    pHL2ResearchMode->m_lastSpatialFrame.RFFrame.timestamp_ft = ts_right.TargetTime().time_since_epoch().count() - 116444736000000000;
+                    pHL2ResearchMode->m_lastSpatialFrame.LLFrame.timestamp_ft = ts_leftleft.TargetTime().time_since_epoch().count() - 116444736000000000;
+                    pHL2ResearchMode->m_lastSpatialFrame.RRFrame.timestamp_ft = ts_rightright.TargetTime().time_since_epoch().count() - 116444736000000000; // JULIA: setting ts to unix time
+                                                                                // ^ should be the number of ticks (100 nanoseconds) since unix epoch
 
 					// save LF and RF images, as well as LL and RR
 					if (!pHL2ResearchMode->m_lastSpatialFrame.LFFrame.image)
@@ -857,7 +864,9 @@ namespace winrt::HL2UnityPlugin::implementation
                 ResearchModeSensorTimestamp timestamp_accel;
                 pSensorFrame->GetTimeStamp(&timestamp_accel);
                 auto ts_accel = PerceptionTimestampHelper::FromSystemRelativeTargetTime(HundredsOfNanoseconds(checkAndConvertUnsigned(timestamp_accel.HostTicks)));
-                pHL2ResearchMode->m_lastAccelSensorTimestamp = ts_accel.TargetTime().time_since_epoch().count();
+                pHL2ResearchMode->m_lastAccelSensorTimestamp = ts_accel.TargetTime().time_since_epoch().count() - 116444736000000000; 
+                // pHL2ResearchMode->m_lastAccelSensorTimestamp = ts_accel.TargetTime().Ticks - ts_accel.TargetTime().UnixEpoch.Ticks; // JULIA: setting ts to unix time
+                                                                // ^ should be the number of ticks (100 nanoseconds) since unix epoch
 
                 auto pAccelSample = std::make_unique<float[]>(3);
 
@@ -1458,7 +1467,7 @@ namespace winrt::HL2UnityPlugin::implementation
         return tempBuffer;
     }
 
-    com_array<uint8_t> HL2ResearchMode::GetLFCameraBuffer(int64_t& ts)
+    com_array<uint8_t> HL2ResearchMode::GetLFCameraBuffer(int64_t& ts) // JULIA: TS
 	{
 		std::lock_guard<std::mutex> l(mu);
 		if (!m_lastSpatialFrame.LFFrame.image)
@@ -1471,7 +1480,7 @@ namespace winrt::HL2UnityPlugin::implementation
         return tempBuffer;
 	}
 
-    com_array<uint8_t> HL2ResearchMode::GetRFCameraBuffer(int64_t& ts)
+    com_array<uint8_t> HL2ResearchMode::GetRFCameraBuffer(int64_t& ts) // JULIA: TS
 	{
 		std::lock_guard<std::mutex> l(mu);
 		if (!m_lastSpatialFrame.RFFrame.image)
@@ -1484,7 +1493,7 @@ namespace winrt::HL2UnityPlugin::implementation
 		return tempBuffer;
 	}
 
-    com_array<uint8_t> HL2ResearchMode::GetLLCameraBuffer(int64_t& ts)
+    com_array<uint8_t> HL2ResearchMode::GetLLCameraBuffer(int64_t& ts) // JULIA: TS
 	{
 		std::lock_guard<std::mutex> l(mu);
 		if (!m_lastSpatialFrame.LLFrame.image)
@@ -1497,7 +1506,7 @@ namespace winrt::HL2UnityPlugin::implementation
 		return tempBuffer;
 	}
 
-    com_array<uint8_t> HL2ResearchMode::GetRRCameraBuffer(int64_t& ts)
+    com_array<uint8_t> HL2ResearchMode::GetRRCameraBuffer(int64_t& ts) // JULIA: TS
 	{
 		std::lock_guard<std::mutex> l(mu);
 		if (!m_lastSpatialFrame.RRFrame.image)
@@ -1549,7 +1558,7 @@ namespace winrt::HL2UnityPlugin::implementation
             return com_array<float>(3);
         }
         com_array<float> tempBuffer = com_array<float>(std::move_iterator(m_accelSample), std::move_iterator(m_accelSample + 3));
-        ts = m_lastAccelSensorTimestamp;
+        ts = m_lastAccelSensorTimestamp; // JULIA: TS
         m_accelSampleUpdated = false;
         return tempBuffer;
     }
@@ -1594,7 +1603,7 @@ namespace winrt::HL2UnityPlugin::implementation
 
     // Get the buffer for point cloud in the form of float array.
     // There will be 3n elements in the array where the 3i, 3i+1, 3i+2 element correspond to x, y, z component of the i'th point. (i->[0,n-1])
-    com_array<float> HL2ResearchMode::GetLongThrowPointCloudBuffer(int64_t& ts)
+    com_array<float> HL2ResearchMode::GetLongThrowPointCloudBuffer(int64_t& ts) 
     {
         std::lock_guard<std::mutex> l(mu);
         {
@@ -1609,7 +1618,7 @@ namespace winrt::HL2UnityPlugin::implementation
         {
             return com_array<float>();
         };
-        ts = m_lastLongThrowPointCloudTimestamp;
+        ts = m_lastLongThrowPointCloudTimestamp; // JULIA: TS
         com_array<float> tempBuffer = com_array<float>(std::move_iterator(m_longThrowPointCloud), std::move_iterator(m_longThrowPointCloud + m_longThrowPointcloudLength));
         m_longThrowPointCloudUpdated = false;
         return tempBuffer;

@@ -125,71 +125,69 @@ public class ResearchModeImuStream : MonoBehaviour
             {
                 // AccelText.text = $"Accel : {accelSampleData[0]:F3}, {accelSampleData[1]:F3}, {accelSampleData[2]:F3}";
             }
-        }
 
-        // JULIA: note! Dec 13, only publish IMU if the accelerometer is updated because that's where we get the timestamp
-        // Hopefully this doesn't decrease the publishing rate too much, all other sensors should also be updated anyways
-        Debug.Log("Setting up ImuMsg to publish");
-        Debug.Log("Getting orientation");
-        // ORIENTATION
-        // QuaternionMsg orientation = this.ConvertToQuaternion(magSampleData); // Gets the orientation from magnetometer
-        // GetGeometryQuaternion(PublishedTransform.rotation.Unity2Ros(), orientation);
+            // JULIA: note! Dec 13, only publish IMU if the accelerometer is updated because that's where we get the timestamp
+            // Hopefully this doesn't decrease the publishing rate too much, all other sensors should also be updated anyways
+            Debug.Log("Setting up ImuMsg to publish");
+            Debug.Log("Getting orientation");
+            // ORIENTATION
+            // QuaternionMsg orientation = this.ConvertToQuaternion(magSampleData); // Gets the orientation from magnetometer
+            // GetGeometryQuaternion(PublishedTransform.rotation.Unity2Ros(), orientation);
 
-        Debug.Log("Getting gyro");
-        // ANGULAR VELOCITY
-        Vector3Msg angular_v = new Vector3Msg(-gyroSampleData[0], -gyroSampleData[1], gyroSampleData[2]); // should be rad
+            Debug.Log("Getting gyro");
+            // ANGULAR VELOCITY
+            Vector3Msg angular_v = new Vector3Msg(-gyroSampleData[0], -gyroSampleData[1], gyroSampleData[2]); // should be rad
+            
+            // LINEAR ACCELERATION
+            Debug.Log("Getting accel");
+            Vector3Msg linear_a = new Vector3Msg(accelSampleData[0], accelSampleData[1], accelSampleData[2]); // should be in m/s^2
+
+            Debug.Log("Getting time as double");
+            // // JULIA: Get the Unity time
+            // double unity_time = Time.timeAsDouble;
+            // // float unity_time = Time.time;
+
+            // uint unity_time_sec = (uint)unity_time;
+            // uint unity_time_nano = (uint)((unity_time - (int)unity_time_sec) * 1e9);
+
+            // // Old method of using the perception timestamp within the method
+            // HeaderMsg header = new HeaderMsg(
+            //     0,
+            //     new TimeMsg(),
+            //     "DepthMap"
+            // );
+            // var perceptionTimestamp = GetCurrentTimestamp();
+            // var systemDTOffset = perceptionTimestamp.TargetTime;
+            // var ts_old = systemDTOffset.ToFileTime();
+            // ts_old = ts_old - 116444736000000000;
+            // header.stamp.sec = (uint)(ts_old/TimeSpan.TicksPerSecond); // Just the number of seconds
+            // header.stamp.nanosec = (uint)( ts_old%TimeSpan.TicksPerSecond ) * 100; // Number of ns with the seconds subtracted
+
+            // Extracting the Timestamp directly from the Accelerator sensor
+            HeaderMsg header = new HeaderMsg(
+                0,
+                new TimeMsg(),
+                "DepthMap"
+            );
         
-        // LINEAR ACCELERATION
-        Debug.Log("Getting accel");
-        Vector3Msg linear_a = new Vector3Msg(accelSampleData[0], accelSampleData[1], accelSampleData[2]); // should be in m/s^2
+            header.stamp.sec = (uint)(ts/TimeSpan.TicksPerSecond); // Just the number of seconds
+            header.stamp.nanosec = (uint)( ts%TimeSpan.TicksPerSecond ) * 100; // Number of ns with the seconds subtracted
 
-        Debug.Log("Getting time as double");
-        // // JULIA: Get the Unity time
-        // double unity_time = Time.timeAsDouble;
-        // // float unity_time = Time.time;
+            Debug.Log("New Orientation " + orientation.x + orientation.y + orientation.z + orientation.w);
+            ImuMsg imuMsg = new ImuMsg(
+                header,
+                orientation, // Quaternion orientation
+                orientation_covariance, // float64[9] orientation_covariance
+                angular_v, // Vector3 angular_velocity
+                covariance, // float64[9] angular_velocity_covariance
+                linear_a, // Vector3 linear_acceleration
+                covariance // float64[9] linear_acceleration_covariance
+            );
 
-        // uint unity_time_sec = (uint)unity_time;
-        // uint unity_time_nano = (uint)((unity_time - (int)unity_time_sec) * 1e9);
-
-        // Old method of using the perception timestamp within the method
-        HeaderMsg header = new HeaderMsg(
-            0,
-            new TimeMsg(),
-            "DepthMap"
-        );
-        var perceptionTimestamp = GetCurrentTimestamp();
-        var systemDTOffset = perceptionTimestamp.TargetTime;
-        var ts_old = systemDTOffset.ToFileTime();
-        // // header.stamp.sec = (uint)(systemDTOffset.Ticks/TimeSpan.TicksPerSecond); // Just the number of seconds
-        // header.stamp.sec = (uint)(systemDTOffset.Ticks); // Just the number of hundreds of nanoseconds
-        // header.stamp.nanosec = (uint)( (systemDTOffset.Ticks) - (header.stamp.sec*TimeSpan.TicksPerSecond) ) * 100; // Number of ns with the seconds subtracted
-        header.stamp.sec = (uint)(ts_old/TimeSpan.TicksPerSecond); // Just the number of seconds
-        // header.stamp.sec = (uint)(ts_old); // Just the number of hundredsofnanoseconds
-        header.stamp.nanosec = (uint)( (ts_old) - (header.stamp.sec*TimeSpan.TicksPerSecond) ) * 100; // Number of ns with the seconds subtracted
-
-        // // Extracting the Timestamp directly from the Accelerator sensor
-        // HeaderMsg header = new HeaderMsg(
-        //     0,
-        //     new TimeMsg(),
-        //     "DepthMap"
-        // );
-        // header.stamp.sec = (uint)(ts/TimeSpan.TicksPerSecond); // Just the number of seconds
-        // header.stamp.nanosec = (uint)( (ts) - (header.stamp.sec*TimeSpan.TicksPerSecond) ) * 100; // Number of ns with the seconds subtracted
-
-        Debug.Log("New Orientation " + orientation.x + orientation.y + orientation.z + orientation.w);
-        ImuMsg imuMsg = new ImuMsg(
-            header,
-            orientation, // Quaternion orientation
-            orientation_covariance, // float64[9] orientation_covariance
-            angular_v, // Vector3 angular_velocity
-            covariance, // float64[9] angular_velocity_covariance
-            linear_a, // Vector3 linear_acceleration
-            covariance // float64[9] linear_acceleration_covariance
-        );
-
-        Debug.Log("Publishing ImuMsg");
-        ros.Publish(ImuTopicName, imuMsg);
-        Debug.Log("Published ImuMsg");
+            Debug.Log("Publishing ImuMsg");
+            ros.Publish(ImuTopicName, imuMsg);
+            Debug.Log("Published ImuMsg");
+        }
 #endif
     }
 

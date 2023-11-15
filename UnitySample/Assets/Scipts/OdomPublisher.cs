@@ -72,6 +72,7 @@ public class OdomPublisher : MonoBehaviour
             Debug.Log("Registered Odom Publisher");
         }
 
+        ros.RegisterPublisher<StringMsg>("TEST_TS");
 
 #if ENABLE_WINMD_SUPPORT
         previousTimestamp = GetCurrentTimestamp();
@@ -160,8 +161,14 @@ public class OdomPublisher : MonoBehaviour
         var systemDTOffset = perceptionTimestamp.TargetTime;
         var ts = systemDTOffset.ToFileTime();
 
+        StringMsg testMsg = new StringMsg(
+            ts.ToString()
+        );
+        ros.Publish("TEST_TS", testMsg);
+
+        ts = ts - 116444736000000000;
         message.header.stamp.sec = (uint)(ts/TimeSpan.TicksPerSecond); // Just the number of seconds
-        message.header.stamp.nanosec = (uint)( (ts) - (message.header.stamp.sec*TimeSpan.TicksPerSecond) ) * 100; // Number of ns with the seconds subtracted
+        message.header.stamp.nanosec = (uint)( ts%TimeSpan.TicksPerSecond ) * 100; // Number of ns with the seconds subtracted
 
         // Adding the Twist
         Debug.Log("Adding twist to message");
